@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Museum: Computing, Code & GitHub</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --primary: #3b82f6;
+            --primary-light: #dbeafe;
+            --secondary: #10b981;
+            --secondary-light: #d1fae5;
+            --accent: #f59e0b;
+            --accent-light: #fef3c7;
+            --danger: #ef4444;
+            --border: #e5e7eb;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg-color); color: var(--text-main); overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .slides-container { width: 100%; max-width: 1200px; height: 100vh; position: relative; overflow: hidden; padding: 40px; }
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; opacity: 0; transform: translateX(100px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: none; overflow-y: auto; padding: 40px; }
+        .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        .slide.prev { transform: translateX(-100px); opacity: 0; }
+        
+        h1 { font-size: 2.8em; line-height: 1.2; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 2.2em; margin-bottom: 25px; color: var(--text-main); }
+        h3 { font-size: 1.4em; margin-bottom: 15px; color: var(--primary); }
+        p { font-size: 1.2em; line-height: 1.5; margin-bottom: 15px; color: var(--text-light); }
+        li { font-size: 1.1em; margin-bottom: 10px; line-height: 1.4; }
+        a { color: var(--primary); text-decoration: none; font-weight: bold; }
+        code { font-family: 'Consolas', monospace; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; color: var(--danger); font-size: 0.9em; }
+        
+        .anim { opacity: 0; transform: translateY(20px); transition: all 0.5s ease; }
+        .slide.active .anim { opacity: 1; transform: translateY(0); }
+        .slide.active .anim:nth-child(1) { transition-delay: 0.1s; }
+        .slide.active .anim:nth-child(2) { transition-delay: 0.2s; }
+        .slide.active .anim:nth-child(3) { transition-delay: 0.3s; }
+        
+        .badge { display: inline-block; background: var(--primary-light); color: var(--primary); border-radius: 50px; padding: 8px 20px; font-size: 1.1em; font-weight: bold; margin-bottom: 15px; }
+        .box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 10px 0; box-shadow: var(--shadow); }
+        .box.warning { background: #fff5f5; border-color: #fed7d7; }
+        .box.success { background: #f0fff4; border-color: #c6f6d5; }
+        .box.info { background: #eff6ff; border-color: #bfdbfe; }
+        .box .label { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; display: block; }
+        
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 15px 0; }
+        .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; transition: transform 0.3s ease; box-shadow: var(--shadow); cursor: pointer; }
+        .card:hover { transform: translateY(-5px); }
+        
+        /* XP System */
+        .xp-container { position: fixed; top: 20px; right: 20px; background: white; padding: 10px 20px; border-radius: 50px; box-shadow: var(--shadow); border: 1px solid var(--border); z-index: 1000; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .xp-bar-bg { width: 100px; height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden; }
+        .xp-bar-fill { height: 100%; width: 0%; background: var(--secondary); transition: width 0.5s; }
+        
+        /* IDE Editor */
+        .ide-wrapper { width: 100%; max-width: 600px; margin: 0 auto; background: var(--terminal-bg); border-radius: 10px; border: 1px solid #334155; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+        .ide-header { background: #252526; padding: 10px 15px; color: #858585; font-size: 0.9em; font-family: 'Consolas', monospace; display: flex; justify-content: space-between; border-bottom: 1px solid #334155; }
+        .ide-body { display: flex; flex: 1; min-height: 150px; }
+        .line-numbers { width: 40px; background: #1e1e1e; color: #858585; padding: 15px 10px; text-align: right; font-family: 'Consolas', monospace; font-size: 1.1em; line-height: 1.6; user-select: none; border-right: 1px solid #334155; overflow: hidden; white-space: pre; }
+        .code-area { position: relative; flex: 1; overflow: hidden; }
+        .editor-pre, .editor-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; font-family: 'Consolas', monospace; font-size: 1.1em; line-height: 1.6; margin: 0; border: none; white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; }
+        .editor-pre { color: var(--terminal-text); pointer-events: none; z-index: 1; background: transparent; }
+        .editor-textarea { color: transparent; background: transparent; caret-color: var(--secondary); resize: none; outline: none; z-index: 2; }
+        .btn-run { background: var(--primary); color: white; border: none; padding: 12px 25px; font-size: 1.1em; font-weight: bold; border-radius: 8px; cursor: pointer; margin: 10px auto; display: block; transition: all 0.2s; }
+        .btn-run:hover { background: #2563eb; transform: scale(1.05); }
+        .ide-output { background: #0c0c0c; color: var(--secondary); padding: 15px; font-family: 'Consolas', monospace; font-size: 1.1em; min-height: 60px; border-top: 1px solid #334155; white-space: pre-wrap; position: relative; }
+        .ide-output::before { content: "TERMINAL OUTPUT"; position: absolute; top: 0; left: 0; font-size: 0.6em; color: #64748b; padding: 2px 8px; background: #1e1e1e; border-bottom-right-radius: 5px; }
+        .syn-kw { color: #c678dd; font-weight: bold; } .syn-str { color: #98c379; } .syn-num { color: #d19a66; }
+        
+        /* Toggle Comparison */
+        .toggle-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .toggle-btn { background: white; border: 2px solid var(--border); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; color: var(--text-light); transition: all 0.2s; }
+        .toggle-btn:hover { border-color: var(--primary); }
+        .toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .compare-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .compare-card { background: var(--terminal-bg); border-radius: 10px; overflow: hidden; border: 1px solid #334155; box-shadow: var(--shadow); }
+        .compare-header { padding: 10px; text-align: center; font-weight: bold; font-size: 1.2em; }
+        .py-header { background: #f0fff4; color: var(--secondary); border-bottom: 2px solid var(--secondary); }
+        .c-header { background: #fff5f5; color: var(--danger); border-bottom: 2px solid var(--danger); }
+        .compare-code { padding: 15px; font-family: 'Consolas', monospace; font-size: 1.1em; color: var(--terminal-text); min-height: 150px; white-space: pre-wrap; }
+
+        /* Terminal */
+        .terminal { background: var(--terminal-bg); border-radius: 10px; padding: 15px; font-family: 'Consolas', monospace; font-size: 1.2em; color: var(--terminal-text); box-shadow: var(--shadow); margin: 10px 0; border: 1px solid #334155; min-height: 150px; display: flex; flex-direction: column; position: relative; }
+        .term-history { margin-bottom: 8px; flex: 1; overflow-y: auto; padding-top: 15px; }
+        .term-line { display: flex; align-items: center; gap: 8px; }
+        .term-prompt { color: var(--secondary); font-weight: bold; } .term-prompt.git { color: var(--accent); }
+        .term-input { flex: 1; background: transparent; border: none; color: var(--primary); font-family: 'Consolas', monospace; font-size: 1em; outline: none; caret-color: var(--secondary); }
+        .term-out { color: #94a3b8; padding-left: 15px; margin-bottom: 4px; white-space: pre-wrap; }
+        .term-out-success { color: var(--secondary); padding-left: 15px; margin-bottom: 4px; }
+        .term-out-error { color: var(--danger); padding-left: 15px; margin-bottom: 4px; }
+
+        /* === VISUAL ILLUSTRATIONS === */
+        .visual-split { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; }
+        .hero-visual { display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
+        .v-box { background: white; border: 2px solid var(--primary); border-radius: 10px; padding: 15px 25px; font-weight: bold; color: var(--primary); box-shadow: var(--shadow); text-align: center; min-width: 80px; position: relative; transition: all 0.3s; }
+        .v-box:hover { transform: translateY(-5px); }
+        .v-arrow { font-size: 1.5em; color: var(--accent); animation: pulseArrow 1.5s infinite; }
+        @keyframes pulseArrow { 0% { transform: translateX(0); opacity: 0.5; } 50% { transform: translateX(8px); opacity: 1; } 100% { transform: translateX(0); opacity: 0.5; } }
+
+        .switch-container { display: flex; justify-content: center; gap: 40px; margin: 20px 0; }
+        .switch-pair { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .bulb { width: 80px; height: 80px; border-radius: 50%; background: #e5e7eb; border: 4px solid #d1d5db; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 2em; color: #9ca3af; }
+        .bulb.on { background: #fffbeb; border-color: var(--accent); color: var(--accent); box-shadow: 0 0 25px var(--accent); text-shadow: 0 0 10px var(--accent); }
+        .switch-btn { width: 60px; height: 100px; background: #f3f4f6; border: 2px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; cursor: pointer; position: relative; padding-bottom: 10px; font-weight: bold; color: var(--text-light); user-select: none; transition: all 0.2s; }
+        .switch-btn::before { content: ''; position: absolute; top: 8px; width: 40px; height: 40px; background: #9ca3af; border-radius: 6px; transition: all 0.3s; }
+        .switch-btn.on::before { top: 48px; background: var(--secondary); }
+        .switch-btn.on { color: var(--secondary); border-color: var(--secondary); }
+
+        .git-tree { display: flex; align-items: center; gap: 15px; margin: 20px 0; justify-content: center; }
+        .git-node { width: 50px; height: 50px; background: var(--primary); border-radius: 50%; border: 4px solid white; box-shadow: 0 0 15px rgba(59,130,246,0.4); z-index: 2; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8em; }
+        .git-line { height: 6px; background: var(--primary); flex: 1; max-width: 60px; border-radius: 3px; }
+        .git-branch { border-color: var(--secondary) !important; background: var(--secondary) !important; }
+        .git-line-branch { background: var(--secondary) !important; }
+
+        .conveyor { display: flex; align-items: center; background: #1e1e1e; border-radius: 10px; padding: 20px; gap: 15px; justify-content: space-between; border: 1px solid #334155; position: relative; overflow: hidden; }
+        .conveyor::before { content: ''; position: absolute; bottom: 5px; left: 0; width: 100%; height: 10px; background: repeating-linear-gradient(45deg, #333 0, #333 10px, #444 10px, #444 20px); animation: scrollBelt 1s linear infinite; }
+        @keyframes scrollBelt { 0% { transform: translateX(0); } 100% { transform: translateX(20px); } }
+        .conv-item { background: #fff; color: var(--terminal-bg); padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 1em; z-index: 2; }
+
+        /* AST Tree Visual */
+        .ast-tree { font-family: monospace; text-align: center; margin: 20px 0; color: var(--text-main); font-size: 1.5em; line-height: 1.5; }
+        .ast-node { display: inline-block; background: white; border: 2px solid var(--primary); border-radius: 8px; padding: 5px 15px; margin: 5px; color: var(--primary); font-weight: bold; }
+        .ast-line { color: var(--text-light); }
+        
+        /* Command List Grid */
+        .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .cmd-item { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); }
+        .cmd-code { font-family: monospace; background: #1e1e1e; color: var(--secondary); padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 1.1em; width: 120px; text-align: center; }
+        .cmd-desc { color: var(--text-main); font-weight: 500; font-size: 1.1em; }
+
+        .checklist-item { display: flex; align-items: center; gap: 15px; background: white; border: 1px solid var(--border); padding: 15px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .checklist-item:hover { border-color: var(--primary); }
+        .checklist-item.done { background: var(--secondary-light); border-color: var(--secondary); }
+        .checklist-box { width: 30px; height: 30px; border: 2px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 1.2em; }
+        .checklist-item.done .checklist-box { background: var(--secondary); border-color: var(--secondary); }
+        .quiz-option { background: white; border: 1px solid var(--border); padding: 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; gap: 15px; }
+        .quiz-option:hover { border-color: var(--primary); background: var(--primary-light); }
+        .quiz-option.correct { background: var(--secondary-light); border-color: var(--secondary); color: var(--secondary); }
+        .quiz-option.wrong { background: #fff5f5; border-color: var(--danger); color: var(--danger); }
+        .quiz-icon { font-size: 1.5em; }
+        
+        .folder-tree { font-family: monospace; font-size: 1.2em; color: var(--text-main); background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid var(--border); }
+        
+        .nav { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; }
+        .nav button { background: white; border: 1px solid var(--border); color: var(--text-main); width: 50px; height: 50px; border-radius: 50%; font-size: 1.2em; cursor: pointer; box-shadow: var(--shadow); transition: all 0.2s; }
+        .nav button:hover { background: var(--primary); color: white; transform: scale(1.1); }
+        .counter { position: fixed; bottom: 20px; left: 20px; color: var(--text-light); font-size: 1.1em; background: white; padding: 10px 20px; border-radius: 50px; box-shadow: var(--shadow); border: 1px solid var(--border); z-index: 1000; }
+        .counter span { color: var(--primary); font-weight: bold; }
+        .progress-bar { position: fixed; top: 0; left: 0; height: 5px; background: linear-gradient(90deg, var(--primary), var(--secondary)); width: 0%; transition: width 0.3s ease; z-index: 1000; }
+    </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="xp-container">
+    <span>XP</span>
+    <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBar"></div></div>
+    <span id="xpVal">0</span>
+</div>
+<div class="counter">Slide <span id="current">1</span> / <span id="total">31</span></div>
+
+<div class="slides-container" id="slidesContainer">
+
+    <!-- 1. TITLE -->
+    <div class="slide active" data-slide="1">
+        <div class="anim badge">🚀 Interactive Museum of Computing</div>
+        <h1 class="anim">Pengenalan Pemrograman</h1>
+        <p class="anim">Dari listrik, 0 dan 1, transistor, CPU, mesin, Assembly, C, Python, hingga GitHub.</p>
+        <div class="anim hero-visual">
+            <div class="v-box">0 1</div><div class="v-arrow">→</div>
+            <div class="v-box">CPU</div><div class="v-arrow">→</div>
+            <div class="v-box">C / Python</div><div class="v-arrow">→</div>
+            <div class="v-box">Git & GitHub</div>
+        </div>
+        <div class="anim box info" style="text-align: center; margin-top: 20px;">
+            <p style="margin: 0; font-size: 1em;">🧑‍💻 Disusun oleh: <b>Muhammad Ikhwan Fathulloh</b> | <a href="https://one.nocturnailed.com/" target="_blank">one.nocturnailed.com</a></p>
+        </div>
+    </div>
+
+    <!-- 2. BEFORE PYTHON -->
+    <div class="slide" data-slide="2">
+        <h2 class="anim">Sebelum Ada Python...</h2>
+        <p class="anim">Jika kamu hidup di era komputer pertama, bagaimana kamu memberi perintah?</p>
+        <div class="anim visual-split">
+            <div class="box" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div style="font-size: 4em; margin-bottom: 10px;">🏢</div>
+                <div style="font-size: 3em;">💻</div>
+                <p style="margin-top: 10px; text-align: center; font-weight: bold;">Komputer sebesar ruangan.</p>
+            </div>
+            <div>
+                <div class="quiz-option" onclick="checkQuiz(this, false, 'btn1')"><span class="quiz-icon">🐍</span> A. Menulis Python</div>
+                <div class="quiz-option" onclick="checkQuiz(this, true, 'btn1')" id="btn1"><span class="quiz-icon">🔢</span> B. Menulis 0 dan 1</div>
+                <div class="quiz-option" onclick="checkQuiz(this, false, 'btn1')"><span class="quiz-icon">🗣️</span> C. Berbicara dengan komputer</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. BINARY -->
+    <div class="slide" data-slide="3">
+        <h2 class="anim">Dunia 0 dan 1 (Binary)</h2>
+        <p class="anim">Komputer bekerja dengan dua keadaan: OFF (0) dan ON (1). Klik saklar!</p>
+        <div class="anim visual-split">
+            <div class="switch-container">
+                <div class="switch-pair"><div class="bulb" id="bulb1">0</div><div class="switch-btn" onclick="toggleBit(1, this)">0</div></div>
+                <div class="switch-pair"><div class="bulb on" id="bulb2">1</div><div class="switch-btn on" onclick="toggleBit(2, this)">1</div></div>
+            </div>
+            <div class="box success" style="height: 100%; display: flex; align-items: center;">
+                <p style="margin:0;">Di level dasar, semua software (game, web, AI) dimulai dari sini. Listrik mengalir atau tidak.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. COMPUTER SIZE -->
+    <div class="slide" data-slide="4">
+        <h2 class="anim">Evolusi Ukuran Komputer</h2>
+        <p class="anim">Geser slider untuk melihat perubahan ukuran komputer dari waktu ke waktu.</p>
+        <div class="anim box" style="text-align: center;">
+            <input type="range" min="1" max="5" value="1" id="sizeSlider" oninput="changeSize()" style="width: 80%; margin-bottom: 20px;">
+            <h3 id="sizeTitle" style="font-size: 2em; color: var(--primary);">ROOM SIZE</h3>
+            <p id="sizeDesc">Sebesar ruangan, butuh daya masif.</p>
+        </div>
+    </div>
+
+    <!-- 5. TRANSISTOR -->
+    <div class="slide" data-slide="5">
+        <h2 class="anim">The Tiny Switch: Transistor</h2>
+        <p class="anim">Komputer besar tersusun dari miliaran saklar mikro.</p>
+        <div class="anim visual-split">
+            <div class="hero-visual" style="flex-direction: column;">
+                <div class="v-box">💻 Computer</div><div class="v-arrow">↓</div>
+                <div class="v-box" style="border-color: var(--danger); color: var(--danger);">⚙️ CPU</div><div class="v-arrow">↓</div>
+                <div class="v-box" style="border-color: var(--accent); color: var(--accent);">⚡ Transistor</div>
+            </div>
+            <div class="box" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <button class="btn-run" onclick="addTransistor()">+ ADD TRANSISTOR</button>
+                <div id="cpu-visual" style="display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; min-height: 80px; padding: 10px; background: #1e1e1e; border-radius: 8px; width: 100%; position: relative;">
+                    <span style="color: #858585; align-self: center;">Klik tombol...</span>
+                </div>
+                <p id="trans-count" style="margin-top: 10px; color: var(--text-main); font-weight: bold;">0 Transistors</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. MACHINE CODE & ASSEMBLY -->
+    <div class="slide" data-slide="6">
+        <h2 class="anim">Machine Code → Assembly</h2>
+        <p class="anim">Cara memberi perintah ke CPU berubah seiring waktu.</p>
+        <div class="anim compare-container">
+            <div class="compare-card">
+                <div class="compare-header" style="background: #fff5f5; color: var(--danger);">Era 1940an (Machine Code)</div>
+                <div class="compare-code">10110000 01100001
+10110001 00000010</div>
+            </div>
+            <div class="compare-card">
+                <div class="compare-header" style="background: #fffbeb; color: var(--accent);">Era 1950an (Assembly)</div>
+                <div class="compare-code">MOV AL, 61h
+MOV BL, 02h</div>
+            </div>
+        </div>
+        <div class="anim box warning" style="margin-top: 15px;"><span class="label">Masalah:</span><p style="margin:0;">Tetap sulit dibaca manusia, terlalu dekat dengan hardware. Manusia butuh bahasa yang lebih manusiawi.</p></div>
+    </div>
+
+    <!-- 7. ABSTRACTION LADDER -->
+    <div class="slide" data-slide="7">
+        <h2 class="anim">Tangga Abstraksi Bahasa</h2>
+        <p class="anim">Klik setiap level untuk melihat seberapa jauh bahasa itu dari hardware.</p>
+        <div class="anim visual-split">
+            <div>
+                <div class="quiz-option active" onclick="selectLadder(1, this)"><span class="quiz-icon">🐍</span> L5: Python / JS</div>
+                <div class="quiz-option" onclick="selectLadder(2, this)"><span class="quiz-icon">☕</span> L4: Java / Go</div>
+                <div class="quiz-option" onclick="selectLadder(3, this)"><span class="quiz-icon">⚙️</span> L3: C / C++</div>
+                <div class="quiz-option" onclick="selectLadder(4, this)"><span class="quiz-icon">🔡</span> L2: Assembly</div>
+                <div class="quiz-option" onclick="selectLadder(5, this)"><span class="quiz-icon">0️⃣</span> L1: Machine Code</div>
+            </div>
+            <div class="box" style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                <h3 id="l-title">Python / JS</h3>
+                <p id="l-desc">Level tertinggi. Sangat dekat dengan bahasa manusia. Memori dikelola otomatis.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. WHY MANY LANGUAGES -->
+    <div class="slide" data-slide="8">
+        <h2 class="anim">Kenapa Ada Banyak Bahasa?</h2>
+        <p class="anim">Kalau satu bahasa sudah ada, mengapa membuat yang baru?</p>
+        <div class="anim hero-visual" style="flex-direction: column;">
+            <div class="v-box" style="border-color: var(--text-light); color: var(--text-light);">Hardware & Industri Berubah</div>
+            <div class="v-arrow">↓</div>
+            <div class="v-box" style="border-color: var(--primary);">Bahasa Berevolusi</div>
+        </div>
+        <div class="anim cards">
+            <div class="card"><span style="font-size:2em">⚡</span><h4>Performance</h4><p>Butuh kecepatan (C, Rust)</p></div>
+            <div class="card"><span style="font-size:2em">🚀</span><h4>Produktivitas</h4><p>Butuh buat cepat (Python, JS)</p></div>
+            <div class="card"><span style="font-size:2em">🛡️</span><h4>Domain</h4><p>Butuh spesifik (SQL, C)</p></div>
+        </div>
+    </div>
+
+    <!-- 9. INSTALLATION -->
+    <div class="slide" data-slide="9">
+        <h2 class="anim">Isi Installer Bahasa Pemrograman</h2>
+        <p class="anim">Kenapa cara install berbeda? Karena isinya disesuaikan dengan cara kerjanya!</p>
+        <div class="anim toggle-group">
+            <button class="toggle-btn active" onclick="changeInstallView(1)">🐍 Python</button>
+            <button class="toggle-btn" onclick="changeInstallView(2)">⚙️ C (GCC)</button>
+            <button class="toggle-btn" onclick="changeInstallView(3)">🌐 JS (Node.js)</button>
+        </div>
+        <div class="anim box" id="install-box" style="min-height: 180px; display: flex; align-items: center; justify-content: center;"></div>
+    </div>
+
+    <!-- 10. SUNDA LANGUAGE (LINKS HERE) -->
+    <div class="slide" data-slide="10">
+        <h2 class="anim">Inspirasi: Membuat Bahasa Sendiri</h2>
+        <p class="anim">Jika kita paham compiler, kita bisa membuat bahasa sendiri!</p>
+        <div class="anim box" style="background: #fffbeb; border-color: #fde68a; text-align: center;">
+            <span class="label" style="color: var(--accent);">🌍 Sunda Language by Muhammad Ikhwan Fathulloh</span>
+            <p style="font-size: 1.1em;">
+                <a href="https://sunda-language.netlify.app/" target="_blank">🌐 Coba Live: sunda-language.netlify.app</a><br>
+                <a href="https://github.com/Muhammad-Ikhwan-Fathulloh/Sunda-Language" target="_blank">📂 Source Code: GitHub Sunda-Language</a>
+            </p>
+        </div>
+        <div class="anim compare-container">
+            <div class="compare-card"><div class="compare-header py-header">Sunda</div><div class="compare-code">tulis "Halo Dunia"</div></div>
+            <div class="compare-card"><div class="compare-header c-header">Python</div><div class="compare-code">print("Halo Dunia")</div></div>
+        </div>
+    </div>
+
+    <!-- 11. PYTHON VS C -->
+    <div class="slide" data-slide="11">
+        <h2 class="anim">Python vs C</h2>
+        <div class="anim toggle-group">
+            <button class="toggle-btn active" onclick="changeComparison(1)">Hello World</button>
+            <button class="toggle-btn" onclick="changeComparison(2)">Tipe Data</button>
+            <button class="toggle-btn" onclick="changeComparison(3)">Memori</button>
+        </div>
+        <div class="anim compare-container">
+            <div class="compare-card"><div class="compare-header py-header">🐍 Python</div><div class="compare-code" id="py-code"></div></div>
+            <div class="compare-card"><div class="compare-header c-header">⚙️ C</div><div class="compare-code" id="c-code"></div></div>
+        </div>
+    </div>
+
+    <!-- 12. PYTHON EDITOR 1 -->
+    <div class="slide" data-slide="12">
+        <h2 class="anim">Praktek Python 1</h2>
+        <p class="anim">Edit kode, lalu klik Run. <b>Ingat: Menjalankan kode harus lewat CLI/Terminal!</b></p>
+        <div class="anim ide-wrapper">
+            <div class="ide-header"><span>halo.py</span><span>Python</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln1"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl1"></pre>
+                    <textarea class="editor-textarea" id="code1" spellcheck="false" oninput="syncEditor(1)">print("Halo Dunia!")</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(1)">▶ Run Kode</button>
+            <div class="ide-output" id="out1">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 13. PYTHON EDITOR 2 -->
+    <div class="slide" data-slide="13">
+        <h2 class="anim">Praktek Python 2: Logika If/Else</h2>
+        <div class="anim visual-split">
+            <div class="ide-wrapper" style="max-width: 400px;">
+                <div class="ide-header"><span>nilai.py</span><span>Python</span></div>
+                <div class="ide-body">
+                    <div class="line-numbers" id="ln2"></div>
+                    <div class="code-area">
+                        <pre class="editor-pre" id="hl2"></pre>
+                        <textarea class="editor-textarea" id="code2" spellcheck="false" oninput="syncEditor(2)">nilai = 80
+
+if nilai >= 75:
+    print("LULUS")
+else:
+    print("REMEDIAL")</textarea>
+                    </div>
+                </div>
+                <button class="btn-run" onclick="runCode(2)">▶ Run</button>
+                <div class="ide-output" id="out2" style="min-height: 40px;">// Run...</div>
+            </div>
+            <div class="box" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <p style="text-align:center; font-weight:bold;">Visual Logika:</p>
+                <div class="hero-visual" style="flex-direction: column;">
+                    <div class="v-box">if nilai >= 75</div>
+                    <div style="display:flex; gap:20px;">
+                        <div class="v-box" style="border-color:var(--secondary);color:var(--secondary);">TRUE → LULUS</div>
+                        <div class="v-box" style="border-color:var(--danger);color:var(--danger);">FALSE → REMEDIAL</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 14. C EDITOR 1 -->
+    <div class="slide" data-slide="14">
+        <h2 class="anim">Praktek Bahasa C 1</h2>
+        <p class="anim">C butuh kerangka <code>main()</code>. <b>Di CLI, C harus di-compile dulu sebelum di-run!</b></p>
+        <div class="anim ide-wrapper">
+            <div class="ide-header"><span>halo.c</span><span>C Language</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln3"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl3"></pre>
+                    <textarea class="editor-textarea" id="code3" spellcheck="false" oninput="syncEditor(3)">#include <stdio.h>
+
+int main() {
+    printf("Halo Dunia!");
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(3)">▶ Run Kode</button>
+            <div class="ide-output" id="out3">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 15. C EDITOR 2 -->
+    <div class="slide" data-slide="15">
+        <h2 class="anim">Praktek Bahasa C 2: Matematika</h2>
+        <div class="anim ide-wrapper">
+            <div class="ide-header"><span>hitung.c</span><span>C Language</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln4"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl4"></pre>
+                    <textarea class="editor-textarea" id="code4" spellcheck="false" oninput="syncEditor(4)">#include <stdio.h>
+
+int main() {
+    int harga = 15000;
+    int jumlah = 3;
+    int total = harga * jumlah;
+    printf("Total: %d", total);
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(4)">▶ Run Kode</button>
+            <div class="ide-output" id="out4">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 16. COMPILER PIPELINE (DETAILED) -->
+    <div class="slide" data-slide="16">
+        <h2 class="anim">Cara Mesin Membaca Kode (Compiler)</h2>
+        <p class="anim">Compiler adalah pabrik yang mengubah kode jadi instruksi mesin. Contoh: <code>x = 5 + 3</code></p>
+        <div class="anim box" style="background: var(--terminal-bg); padding: 20px; border: none;">
+            <div class="conveyor">
+                <div class="conv-item">📄 Source Code</div>
+                <div class="v-arrow">→</div>
+                <div class="conv-item" style="background:var(--accent); color:#fff;">🔤 Lexer</div>
+                <div class="v-arrow">→</div>
+                <div class="conv-item" style="background:var(--primary); color:#fff;">🌳 Parser</div>
+                <div class="v-arrow">→</div>
+                <div class="conv-item" style="background:var(--secondary); color:#fff;">⚙️ Code Gen</div>
+            </div>
+        </div>
+        <div class="anim visual-split" style="margin-top: 20px;">
+            <div class="box" style="text-align: center; height: 100%; display:flex; flex-direction:column; justify-content:center;">
+                <span class="label">1. Lexer (Pemecah Kata)</span>
+                <p style="margin:0">Memecah teks menjadi Token:</p>
+                <div style="margin-top:10px; display:flex; gap:5px; justify-content:center; flex-wrap:wrap;">
+                    <span class="ast-node">x</span><span class="ast-node">=</span><span class="ast-node">5</span><span class="ast-node">+</span><span class="ast-node">3</span>
+                </div>
+            </div>
+            <div class="box" style="text-align: center; height: 100%; display:flex; flex-direction:column; justify-content:center;">
+                <span class="label">2. Parser (Pohon Sintaks / AST)</span>
+                <div class="ast-tree">
+                    <div class="ast-node">=</div>
+                    <div class="ast-line">/ &nbsp; \</div>
+                    <div style="display:flex; gap:60px; justify-content:center;">
+                        <div class="ast-node">x</div>
+                        <div class="ast-node">+</div>
+                    </div>
+                    <div style="margin-left: 90px;">
+                        <div class="ast-line">/ &nbsp; \</div>
+                        <div style="display:flex; gap:10px; justify-content:center;">
+                            <div class="ast-node">5</div><div class="ast-node">3</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="anim" style="text-align: center; margin-top: 15px;">3. <b>Code Generator:</b> Mengubah pohon AST menjadi <code>10110000</code> (Biner) yang siap dieksekusi CPU.</p>
+    </div>
+
+    <!-- 17. CLI STORY -->
+    <div class="slide" data-slide="17">
+        <h2 class="anim">Command Line (CLI) untuk Developer</h2>
+        <p class="anim">CLI adalah senjata utama developer. Tanpa CLI, kamu tidak bisa compile atau pakai Git!</p>
+        <div class="anim hero-visual" style="margin-bottom: 20px;">
+            <div class="v-box">USER</div><div class="v-arrow">→</div>
+            <div class="v-box">CLI</div><div class="v-arrow">→</div>
+            <div class="v-box">SHELL</div><div class="v-arrow">→</div>
+            <div class="v-box">OS</div>
+        </div>
+        <div class="anim box">
+            <span class="label">Anatomi Perintah CLI</span>
+            <div class="terminal" style="margin:0; min-height: auto;">
+                <div class="term-line" style="font-size: 1.3em;">
+                    <span class="term-prompt">➜ ~</span>
+                    <span style="color: var(--primary);">ls</span>
+                    <span style="color: var(--accent);">-l</span>
+                    <span style="color: #e879f9;">/home/budi</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 18. CLI CHEAT SHEET (NEW) -->
+    <div class="slide" data-slide="18">
+        <h2 class="anim">📋 Perintah CLI yang Wajib Diketahui</h2>
+        <p class="anim">Kamu WAJIB menghafal perintah dasar ini untuk navigasi dan mengelola file.</p>
+        <div class="anim cmd-grid">
+            <div class="cmd-item"><div class="cmd-code">pwd</div><div class="cmd-desc">Menampilkan folder tempat kamu berada saat ini.</div></div>
+            <div class="cmd-item"><div class="cmd-code">ls</div><div class="cmd-desc">Melihat isi dari folder saat ini.</div></div>
+            <div class="cmd-item"><div class="cmd-code">cd [nama]</div><div class="cmd-desc">Pindah ke folder lain.</div></div>
+            <div class="cmd-item"><div class="cmd-code">mkdir [nama]</div><div class="cmd-desc">Membuat folder baru.</div></div>
+            <div class="cmd-item"><div class="cmd-code">touch [nama]</div><div class="cmd-desc">Membuat file kosong baru.</div></div>
+            <div class="cmd-item"><div class="cmd-code">rm [nama]</div><div class="cmd-desc">Menghapus file (Permanen!).</div></div>
+            <div class="cmd-item"><div class="cmd-code">cat [nama]</div><div class="cmd-desc">Membaca isi file teks.</div></div>
+            <div class="cmd-item"><div class="cmd-code">clear</div><div class="cmd-desc">Membersihkan layar terminal.</div></div>
+        </div>
+    </div>
+
+    <!-- 19. TERMINAL 1 -->
+    <div class="slide" data-slide="19">
+        <h2 class="anim">Praktek CLI: Navigasi</h2>
+        <p class="anim">Ketik perintah di terminal: <code>pwd</code>, <code>ls</code>, <code>cd src</code></p>
+        <div class="anim visual-split">
+            <div class="terminal" onclick="document.getElementById('term-input1').focus()" style="height: 200px;">
+                <div class="term-history" id="term-history1"><div class="term-out">Ketik perintah...</div></div>
+                <div class="term-line"><span class="term-prompt">➜ ~</span><input type="text" class="term-input" id="term-input1" autocomplete="off"></div>
+            </div>
+            <div class="folder-tree">
+                📂 HOME<br>
+                &nbsp;├── 📄 halo.c<br>
+                &nbsp;├── 📄 data.txt<br>
+                &nbsp;└── 📂 src<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;└── 📄 main.py
+            </div>
+        </div>
+    </div>
+
+    <!-- 20. TERMINAL 2 -->
+    <div class="slide" data-slide="20">
+        <h2 class="anim">Praktek CLI: Compile & Run</h2>
+        <p class="anim">Jalankan C di CLI: <code>gcc halo.c -o halo && ./halo</code></p>
+        <div class="anim terminal" onclick="document.getElementById('term-input2').focus()">
+            <div class="term-history" id="term-history2"><div class="term-out">File tersedia: halo.c</div></div>
+            <div class="term-line"><span class="term-prompt">➜ ~</span><input type="text" class="term-input" id="term-input2" autocomplete="off"></div>
+        </div>
+    </div>
+
+    <!-- 21. GIT STORY (LINK HERE) -->
+    <div class="slide" data-slide="21">
+        <h2 class="anim">Masalah Sebelum Git</h2>
+        <p class="anim">Dulu, menyimpan riwayat perubahan kode sangat kacau. Butuh CLI untuk mengaturnya!</p>
+        <div class="anim box" style="background: var(--terminal-bg); color: var(--terminal-text); font-family: monospace; font-size: 1.2em; text-align: center;">
+            program.c<br>
+            program_final.c<br>
+            program_final_fix.c<br>
+            program_final_fix2_beneran.c
+        </div>
+        <div class="anim hero-visual">
+            <div class="v-box" style="border-color: var(--danger); color: var(--danger);">Kode Berantakan</div>
+            <div class="v-arrow">→</div>
+            <div class="v-box" style="border-color: var(--secondary); color: var(--secondary);">Git (CLI)</div>
+        </div>
+        <div class="anim box info" style="text-align: center; margin-top: 15px;">
+            <p style="margin: 0; font-size: 1em;">📺 Pelajari lebih lanjut: <a href="https://youtu.be/rzuhHzFuvjY?si=xu0CYwdsSGeIHT2-" target="_blank">Video Git & Kolaborasi (youtube.com/watch?v=rzuhHzFuvjY)</a></p>
+        </div>
+    </div>
+
+    <!-- 22. GIT CHEAT SHEET (NEW) -->
+    <div class="slide" data-slide="22">
+        <h2 class="anim">📋 Perintah Git yang Wajib Diketahui</h2>
+        <p class="anim">Git dioperasikan 100% via CLI. Ini urutan perintah wajib yang harus dihafal!</p>
+        <div class="anim cmd-grid">
+            <div class="cmd-item"><div class="cmd-code">git init</div><div class="cmd-desc">Mengubah folder biasa menjadi folder pelacak Git.</div></div>
+            <div class="cmd-item"><div class="cmd-code">git status</div><div class="cmd-desc">Cek perubahan apa yang belum disimpan.</div></div>
+            <div class="cmd-item"><div class="cmd-code">git add .</div><div class="cmd-desc">Siapkan SEMUA perubahan untuk disimpan.</div></div>
+            <div class="cmd-item"><div class="cmd-code">git commit -m "msg"</div><div class="cmd-desc">Simpan perubahan ke riwayat (Version).</div></div>
+            <div class="cmd-item"><div class="cmd-code">git push</div><div class="cmd-desc">Kirim riwayat ke GitHub (Cloud).</div></div>
+            <div class="cmd-item"><div class="cmd-code">git pull</div><div class="cmd-desc">Ambil perubahan terbaru dari GitHub.</div></div>
+            <div class="cmd-item"><div class="cmd-code">git branch [nama]</div><div class="cmd-desc">Buat cabang/kopi kode agar tidak ganggu utama.</div></div>
+            <div class="cmd-item"><div class="cmd-code">git clone [url]</div><div class="cmd-desc">Unduh repo dari GitHub ke laptop.</div></div>
+        </div>
+    </div>
+
+    <!-- 23. GIT TERMINAL & TREE -->
+    <div class="slide" data-slide="23">
+        <h2 class="anim">Praktek CLI: Git & Branch</h2>
+        <p class="anim">Coba ketik perintah Git di bawah ini: <code>git status</code>, <code>git add .</code></p>
+        <div class="anim visual-split">
+            <div class="terminal" onclick="document.getElementById('term-input3').focus()" style="height: 180px;">
+                <div class="term-history" id="term-history3"><div class="term-out">Repo terinisialisasi.</div></div>
+                <div class="term-line"><span class="term-prompt git">git ➜ ~</span><input type="text" class="term-input" id="term-input3" autocomplete="off"></div>
+            </div>
+            <div class="box" style="height: 180px; display: flex; flex-direction: column; justify-content: center;">
+                <p style="text-align:center; font-weight:bold;">Git Branch Tree:</p>
+                <div class="git-tree">
+                    <div class="git-node">V1</div><div class="git-line"></div>
+                    <div class="git-node git-branch">V2</div><div class="git-line git-line-branch"></div>
+                    <div class="git-node git-branch">V3</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 24. GITHUB STORY -->
+    <div class="slide" data-slide="24">
+        <h2 class="anim">Git → GitHub → Portfolio</h2>
+        <p class="anim">Git (CLI) di laptop mendorong kode ke GitHub (Cloud) untuk jadi portfolio.</p>
+        <div class="anim hero-visual" style="flex-direction: column;">
+            <div style="display: flex; gap: 15px;"><div class="v-box">💻 Laptop (Git)</div><div class="v-arrow">→</div><div class="v-box">☁️ GitHub</div></div>
+            <div class="v-arrow">↓</div>
+            <div class="v-box" style="border-color: var(--secondary); color: var(--secondary);">🟩 Profil Portfolio!</div>
+        </div>
+    </div>
+
+    <!-- 25. FINAL TIMELINE -->
+    <div class="slide" data-slide="25">
+        <h2 class="anim">Timeline Evolusi</h2>
+        <div class="anim hero-visual" style="flex-direction: column; gap: 10px;">
+            <div class="v-box">Binary / Hardware</div><div class="v-arrow">↓</div>
+            <div class="v-box">Machine Code</div><div class="v-arrow">↓</div>
+            <div class="v-box">Assembly</div><div class="v-arrow">↓</div>
+            <div class="v-box">C / C++</div><div class="v-arrow">↓</div>
+            <div class="v-box">Python / Modern</div><div class="v-arrow">↓</div>
+            <div class="v-box">Git & GitHub</div>
+        </div>
+    </div>
+
+    <!-- 26. QUIZ 1 -->
+    <div class="slide" data-slide="26">
+        <h2 class="anim">Quiz 1: Mana paling dekat dengan hardware?</h2>
+        <div class="anim">
+            <div class="quiz-option" onclick="checkQuiz(this, false, 'q2')"><span class="quiz-icon">🐍</span> Python</div>
+            <div class="quiz-option" onclick="checkQuiz(this, false, 'q2')"><span class="quiz-icon">⚙️</span> C</div>
+            <div class="quiz-option" onclick="checkQuiz(this, false, 'q2')"><span class="quiz-icon">🔡</span> Assembly</div>
+            <div class="quiz-option" onclick="checkQuiz(this, true, 'q2')" id="q2"><span class="quiz-icon">0️⃣</span> Machine Code</div>
+        </div>
+    </div>
+
+    <!-- 27. QUIZ 2 -->
+    <div class="slide" data-slide="27">
+        <h2 class="anim">Quiz 2: Apa gunanya Git?</h2>
+        <div class="anim">
+            <div class="quiz-option" onclick="checkQuiz(this, false, 'q3')"><span class="quiz-icon">🐍</span> Menjalankan kode Python</div>
+            <div class="quiz-option" onclick="checkQuiz(this, true, 'q3')" id="q3"><span class="quiz-icon">🌳</span> Version Control & Kolaborasi</div>
+            <div class="quiz-option" onclick="checkQuiz(this, false, 'q3')"><span class="quiz-icon">⚙️</span> Menerjemahkan bahasa mesin</div>
+        </div>
+    </div>
+
+    <!-- 28. FINAL MISSION (LINK HERE) -->
+    <div class="slide" data-slide="28">
+        <h2 class="anim">✅ Final Mission: Portfolio!</h2>
+        <p class="anim">Semua langkah ini WAJIB pakai CLI! Klik checklist setelah selesai.</p>
+        <div class="anim box info" style="text-align: center; margin-bottom: 15px;">
+            <p style="margin: 0; font-size: 1em;">📺 Tonton Panduan: <a href="https://www.youtube.com/watch?v=6lDube6n4nQ" target="_blank">Code to Impact: Bangun Reputasi Developer (youtube.com/watch?v=6lDube6n4nQ)</a></p>
+        </div>
+        <div class="anim">
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>1. Buat program Halo Dunia</div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>2. Buka CLI, ketik <code>git init</code></div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>3. Ketik <code>git add .</code> dan <code>git commit</code></div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>4. Push ke GitHub & buat README</div>
+        </div>
+    </div>
+
+    <!-- 29. CLOSING -->
+    <div class="slide" data-slide="29" style="text-align: center;">
+        <div class="anim badge">🎉 Penutup</div>
+        <h1 class="anim">Dari 0 dan 1, Sampai Aplikasi Modern</h1>
+        <div class="anim box" style="max-width: 800px; margin: 20px auto;">
+            <p style="margin:0; font-size: 1.4em; color: var(--text-main);">Hardware membuat komputasi mungkin. Programming membuatnya berguna. Git & GitHub membuatnya kolaboratif.</p>
+        </div>
+        <p class="anim" style="font-size: 1.2em; margin-top: 20px;"><b>Muhammad Ikhwan Fathulloh</b> | <a href="https://one.nocturnailed.com/" target="_blank">one.nocturnailed.com</a></p>
+    </div>
+
+    <!-- 30. REFERENCES -->
+    <div class="slide" data-slide="30">
+        <h2 class="anim">📚 Referensi dan Sumber</h2>
+        <div class="anim box">
+            <span class="label">Sumber Utama (Daftar Lengkap)</span>
+            <p>📺 Video Code to Impact: <a href="https://www.youtube.com/watch?v=6lDube6n4nQ" target="_blank">youtube.com/watch?v=6lDube6n4nQ</a><br>
+            📺 Video Git & Kolaborasi: <a href="https://youtu.be/rzuhHzFuvjY?si=xu0CYwdsSGeIHT2-" target="_blank">youtube.com/watch?v=rzuhHzFuvjY</a><br>
+            🌍 Sunda Language: <a href="https://sunda-language.netlify.app/" target="_blank">sunda-language.netlify.app</a><br>
+            📂 Sunda Language (Kode): <a href="https://github.com/Muhammad-Ikhwan-Fathulloh/Sunda-Language" target="_blank">GitHub Sunda-Language</a><br>
+            🧑‍💻 Profil Dosen: <a href="https://one.nocturnailed.com/" target="_blank">one.nocturnailed.com</a></p>
+        </div>
+        <div class="anim box">
+            <span class="label">Pustaka</span>
+            <ol><li>Sebesta, R. W. <i>Concepts of Programming Languages</i>. Pearson.</li><li>Kernighan, B. W., & Ritchie, D. M. (1978). <i>The C Programming Language</i>.</li><li>Python Software Foundation. <i>Python 3 Documentation</i>.</li><li>Shotts, W. <i>The Linux Command Line</i>.</li></ol>
+        </div>
+    </div>
+
+</div>
+
+<div class="nav">
+    <button onclick="prevSlide()" id="prevBtn">←</button>
+    <button onclick="nextSlide()" id="nextBtn">→</button>
+</div>
+
+<script>
+    let currentSlide = 1;
+    const totalSlides = 30;
+    const slides = document.querySelectorAll('.slide');
+    const progressBar = document.getElementById('progressBar');
+    const currentSpan = document.getElementById('current');
+    
+    // XP System
+    let xp = 0;
+    function addXP(val) {
+        xp += val;
+        document.getElementById('xpVal').innerText = xp;
+        document.getElementById('xpBar').style.width = Math.min(100, xp) + '%';
+    }
+
+    function updateSlide() {
+        slides.forEach((slide, index) => {
+            slide.classList.remove('active', 'prev');
+            if (index + 1 === currentSlide) {
+                slide.classList.add('active');
+                if (slide.querySelector('.editor-textarea')) {
+                    let id = slide.querySelector('.editor-textarea').id.replace('code', '');
+                    syncEditor(id);
+                }
+                if (slide.querySelector('#py-code')) { changeComparison(1); }
+                if (slide.querySelector('#install-box')) { changeInstallView(1); }
+            } else if (index + 1 < currentSlide) {
+                slide.classList.add('prev');
+            }
+        });
+        currentSpan.textContent = currentSlide;
+        progressBar.style.width = (currentSlide / totalSlides * 100) + '%';
+    }
+
+    function nextSlide() { if (currentSlide < totalSlides) { currentSlide++; updateSlide(); } }
+    function prevSlide() { if (currentSlide > 1) { currentSlide--; updateSlide(); } }
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextSlide(); } 
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevSlide(); }
+    });
+
+    // --- Interactive Visuals Logic ---
+    function checkQuiz(el, isCorrect, btnId) {
+        if (el.classList.contains('correct') || el.classList.contains('wrong')) return;
+        if (isCorrect) {
+            el.classList.add('correct');
+            addXP(10);
+        } else {
+            el.classList.add('wrong');
+            document.getElementById(btnId).classList.add('correct');
+        }
+    }
+
+    function toggleBit(id, el) {
+        let bulb = document.getElementById('bulb' + id);
+        if (el.innerText === '0') { 
+            el.innerText = '1'; el.classList.add('on'); 
+            bulb.innerText = '1'; bulb.classList.add('on');
+        } else { 
+            el.innerText = '0'; el.classList.remove('on'); 
+            bulb.innerText = '0'; bulb.classList.remove('on');
+        }
+    }
+
+    function changeSize() {
+        let val = document.getElementById('sizeSlider').value;
+        let title = document.getElementById('sizeTitle');
+        let desc = document.getElementById('sizeDesc');
+        let sizes = ['ROOM SIZE', 'CABINET', 'DESKTOP', 'LAPTOP', 'SMARTPHONE'];
+        let descs = ['Sebesar ruangan, daya masif.', 'Sebesar lemari, untuk lab.', 'Muat di meja kerja.', 'Portabel dibawa.', 'Saku, super canggih.'];
+        title.innerText = sizes[val-1];
+        desc.innerText = descs[val-1];
+    }
+
+    function addTransistor() {
+        let cpu = document.getElementById('cpu-visual');
+        if (cpu.querySelector('span')) cpu.innerHTML = '';
+        let dot = document.createElement('div');
+        dot.style.width = '8px'; dot.style.height = '8px'; dot.style.background = 'var(--secondary)'; dot.style.borderRadius = '50%';
+        cpu.appendChild(dot);
+        document.getElementById('trans-count').innerText = cpu.children.length + ' Transistors';
+        if (cpu.children.length === 1) addXP(10);
+    }
+
+    function selectLadder(id, el) {
+        document.querySelectorAll('.quiz-option').forEach(l => l.classList.remove('active'));
+        el.classList.add('active');
+        let titles = ['Python / JS', 'Java / Go', 'C / C++', 'Assembly', 'Machine Code'];
+        let descs = ['Level tertinggi. Sangat dekat dengan bahasa manusia.', 'Level menengah-tinggi. OOP ketat.', 'Level menengah. Dekat mesin, cepat.', 'Level rendah. Mnemonic hardware.', 'Level terendah. Biner 0 dan 1.'];
+        document.getElementById('l-title').innerText = titles[id-1];
+        document.getElementById('l-desc').innerText = descs[id-1];
+    }
+
+    function toggleChecklist(el) {
+        if (!el.classList.contains('done')) {
+            el.classList.add('done');
+            addXP(10);
+        }
+    }
+
+    // --- Installation Logic ---
+    function changeInstallView(state) {
+        document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`button[onclick="changeInstallView(${state})"]`).classList.add('active');
+        
+        const box = document.getElementById('install-box');
+        let title = '', desc = '', contents = '';
+        
+        if (state === 1) {
+            title = "🐍 Python Contents";
+            desc = "Python butuh 'Penerjemah' (Interpreter) saat dijalankan.";
+            contents = `<ul style="font-size: 1.2em; color: var(--text-main); text-align: left; margin-left: 20px;">
+                <li><code>python.exe</code> (Interpreter)</li>
+                <li><code>Lib/</code> (Standard Library)</li>
+                <li><code>pip</code> (Package Manager)</li>
+            </ul>`;
+        } else if (state === 2) {
+            title = "⚙️ C (GCC) Contents";
+            desc = "C butuh 'Compiler' yang mengubah kode jadi .exe sebelum dijalankan.";
+            contents = `<ul style="font-size: 1.2em; color: var(--text-main); text-align: left; margin-left: 20px;">
+                <li><code>gcc.exe</code> (Compiler)</li>
+                <li><code>ld.exe</code> (Linker)</li>
+                <li><code>include/</code> (Header files)</li>
+            </ul>`;
+        } else if (state === 3) {
+            title = "🌐 Node.js Contents";
+            desc = "JS ada di browser, tapi Node.js menyediakan runtime untuk backend.";
+            contents = `<ul style="font-size: 1.2em; color: var(--text-main); text-align: left; margin-left: 20px;">
+                <li><code>node.exe</code> (V8 Engine Runtime)</li>
+                <li><code>npm</code> (Package Manager)</li>
+                <li><code>modules/</code> (Core modules)</li>
+            </ul>`;
+        }
+        
+        box.innerHTML = `<div><span class="label" style="color: var(--primary);">${title}</span><p>${desc}</p>${contents}</div>`;
+    }
+
+    // --- Toggle Comparison Logic ---
+    function escapeHtml(unsafe) { return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function highlightCode(code) {
+        let result = ''; let i = 0;
+        const keywords = ['if', 'else', 'for', 'while', 'def', 'return', 'print', 'import', 'from', 'class', 'int', 'float', 'char', 'void', 'main', 'printf', 'NULL', 'struct', 'free'];
+        while (i < code.length) {
+            if (code[i] === '"' || code[i] === "'") {
+                let quote = code[i]; let str = quote; i++;
+                while (i < code.length && code[i] !== quote) { str += code[i]; i++; }
+                if (i < code.length) { str += code[i]; i++; }
+                result += `<span style="color:#98c379">${escapeHtml(str)}</span>`;
+            } else if (code[i] === '#' || (code[i] === '/' && code[i+1] === '/')) {
+                let com = ''; while (i < code.length && code[i] !== '\n') { com += code[i]; i++; }
+                result += `<span style="color:#7ca8b3;font-style:italic">${escapeHtml(com)}</span>`;
+            } else if (/[a-zA-Z_]/.test(code[i])) {
+                let word = ''; while (i < code.length && /[a-zA-Z0-9_]/.test(code[i])) { word += code[i]; i++; }
+                if (keywords.includes(word)) { result += `<span style="color:#c678dd;font-weight:bold">${word}</span>`; } 
+                else { result += escapeHtml(word); }
+            } else if (/[0-9]/.test(code[i])) {
+                let num = ''; while (i < code.length && /[0-9.]/.test(code[i])) { num += code[i]; i++; }
+                result += `<span style="color:#d19a66">${num}</span>`;
+            } else { result += escapeHtml(code[i]); i++; }
+        }
+        return result;
+    }
+
+    function changeComparison(state) {
+        const pyEl = document.getElementById('py-code');
+        const cEl = document.getElementById('c-code');
+        if (!pyEl) return;
+        document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`button[onclick="changeComparison(${state})"]`).classList.add('active');
+        let pyCode = '', cCode = '';
+        if (state === 1) { pyCode = `print("Halo Dunia!")`; cCode = `#include <stdio.h>\nint main() {\n    printf("Halo Dunia!");\n    return 0;\n}`; }
+        else if (state === 2) { pyCode = `umur = 20`; cCode = `int umur = 20;`; }
+        else if (state === 3) { pyCode = `# Otomatis\narr = [1,2,3]`; cCode = `// Manual\nint *arr = malloc(3);\nfree(arr);`; }
+        pyEl.innerHTML = highlightCode(pyCode);
+        cEl.innerHTML = highlightCode(cCode);
+    }
+
+    // --- IDE Editor Logic ---
+    function syncEditor(id) {
+        const textarea = document.getElementById('code' + id);
+        const pre = document.getElementById('hl' + id);
+        const ln = document.getElementById('ln' + id);
+        if (!textarea || !pre) return;
+        let code = textarea.value;
+        pre.innerHTML = highlightCode(code) + '\n';
+        let lineCount = code.split('\n').length;
+        let lnStr = ''; for(let i=1; i<=lineCount; i++) { lnStr += i + '\n'; }
+        ln.textContent = lnStr; 
+        pre.scrollTop = textarea.scrollTop; pre.scrollLeft = textarea.scrollLeft; ln.scrollTop = textarea.scrollTop;
+    }
+
+    function runCode(id) {
+        const textarea = document.getElementById('code' + id);
+        const outputEl = document.getElementById('out' + id);
+        outputEl.style.color = '#94a3b8'; outputEl.textContent = 'Menjalankan kode di CLI...';
+        setTimeout(() => {
+            outputEl.textContent = ''; outputEl.style.color = '#10b981';
+            let result = '';
+            if (id === 1) { let m = textarea.value.match(/print\s*\(\s*['"]([^'"]*)['"]\s*\)/); result = m ? m[1] : 'Error'; }
+            else if (id === 2) { let m = textarea.value.match(/nilai\s*=\s*(\d+)/); result = (m && parseInt(m[1]) >= 75) ? 'LULUS' : 'REMEDIAL'; }
+            else if (id === 3) { let m = textarea.value.match(/printf\s*\(\s*['"]([^'"]*)['"]\s*\)/); result = m ? m[1] : 'Error'; }
+            else if (id === 4) { let h = textarea.value.match(/harga\s*=\s*(\d+)/); let j = textarea.value.match(/jumlah\s*=\s*(\d+)/); result = (h&&j) ? 'Total: '+(parseInt(h[1])*parseInt(j[1])) : 'Error'; }
+            outputEl.textContent = result;
+            addXP(5);
+        }, 500);
+    }
+
+    // --- Terminal Logic ---
+    function handleTerminal(event, inputId, historyId) {
+        if (event.key === 'Enter') {
+            const input = document.getElementById(inputId);
+            const history = document.getElementById(historyId);
+            const cmd = input.value.trim();
+            const prompt = inputId === 'term-input3' ? 'git ➜ ~' : '➜ ~';
+            history.innerHTML += `<div style="display:flex; gap:8px;"><span class="term-prompt ${inputId === 'term-input3' ? 'git' : ''}">${prompt}</span><span style="color:var(--primary)">${cmd}</span></div>`;
+            input.value = '';
+            let out = '', outClass = 'term-out';
+            if (inputId === 'term-input3') {
+                if (cmd === 'git status') out = 'Changes not staged for commit:\n  modified: halo.py';
+                else if (cmd === 'git add .' || cmd === 'git add halo.py') { out = ''; outClass = 'term-out'; }
+                else if (cmd.startsWith('git commit -m')) { out = `[main 1a2b3c] Update`; outClass = 'term-out-success'; }
+                else if (cmd === 'git push') { out = 'Pushing to GitHub...'; outClass = 'term-out-success'; }
+                else if (cmd === 'clear') { history.innerHTML = ''; return; }
+                else { out = `git: command not found`; outClass = 'term-out-error'; }
+            } else {
+                if (cmd === 'pwd') out = '/home/developer/project';
+                else if (cmd === 'ls') out = 'halo.c  data.txt  src/';
+                else if (cmd === 'gcc halo.c -o halo && ./halo') { out = 'Halo Dunia!'; outClass = 'term-out-success'; }
+                else if (cmd === 'clear') { history.innerHTML = ''; return; }
+                else { out = `zsh: command not found: ${cmd.split(' ')[0]}`; outClass = 'term-out-error'; }
+            }
+            if (out) { history.innerHTML += `<div class="${outClass}">${out}</div>`; }
+            history.scrollTop = history.scrollHeight;
+            addXP(5);
+        }
+    }
+
+    document.getElementById('term-input1').addEventListener('keydown', (e) => handleTerminal(e, 'term-input1', 'term-history1'));
+    document.getElementById('term-input2').addEventListener('keydown', (e) => handleTerminal(e, 'term-input2', 'term-history2'));
+    document.getElementById('term-input3').addEventListener('keydown', (e) => handleTerminal(e, 'term-input3', 'term-history3'));
+
+    updateSlide();
+</script>
+</body>
+</html>
