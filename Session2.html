@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session 2: Algoritma, Flowchart & Pseudocode</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --primary: #3b82f6;
+            --primary-light: #dbeafe;
+            --secondary: #10b981;
+            --secondary-light: #d1fae5;
+            --accent: #f59e0b;
+            --accent-light: #fef3c7;
+            --danger: #ef4444;
+            --border: #e5e7eb;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --code-bg: #f3f4f6;
+        }
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --text-main: #f1f5f9;
+            --text-light: #94a3b8;
+            --primary: #60a5fa;
+            --primary-light: #1e3a8a;
+            --secondary: #34d399;
+            --secondary-light: #064e3b;
+            --accent: #fbbf24;
+            --accent-light: #78350f;
+            --border: #334155;
+            --terminal-bg: #020617;
+            --terminal-text: #e2e8f0;
+            --code-bg: #1e293b;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg-color); color: var(--text-main); overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; transition: background 0.3s, color 0.3s; }
+        .slides-container { width: 100%; max-width: 1200px; height: 100vh; position: relative; overflow: hidden; padding: 40px; }
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; opacity: 0; transform: translateX(100px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: none; overflow-y: auto; padding: 40px; }
+        .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        .slide.prev { transform: translateX(-100px); opacity: 0; }
+        h1 { font-size: 2.5em; line-height: 1.2; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 2em; margin-bottom: 25px; color: var(--text-main); }
+        h3 { font-size: 1.4em; margin-bottom: 15px; color: var(--primary); }
+        p { font-size: 1.1em; line-height: 1.5; margin-bottom: 15px; color: var(--text-light); }
+        a { color: var(--primary); text-decoration: none; font-weight: bold; }
+        code { font-family: 'Consolas', monospace; background: var(--code-bg); padding: 2px 6px; border-radius: 4px; color: var(--danger); font-size: 0.9em; }
+        
+        .anim { opacity: 0; transform: translateY(20px); transition: all 0.5s ease; }
+        .slide.active .anim { opacity: 1; transform: translateY(0); }
+        .slide.active .anim:nth-child(1) { transition-delay: 0.1s; }
+        .slide.active .anim:nth-child(2) { transition-delay: 0.2s; }
+        .slide.active .anim:nth-child(3) { transition-delay: 0.3s; }
+        .slide.active .anim:nth-child(4) { transition-delay: 0.4s; }
+        
+        .badge { display: inline-block; background: var(--primary-light); color: var(--primary); border-radius: 50px; padding: 8px 20px; font-size: 1.1em; font-weight: bold; margin-bottom: 15px; }
+        .box { background: var(--bg-color); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 10px 0; box-shadow: var(--shadow); }
+        .box.info { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+        .box.warning { background: #fff5f5; border-color: #fed7d7; }
+        body.dark-mode .box.warning { background: #450a0a; border-color: #7f1d1d; }
+        .box.success { background: var(--secondary-light); border-color: var(--secondary); }
+        
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 15px 0; }
+        .card { background: var(--bg-color); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; transition: transform 0.3s ease; box-shadow: var(--shadow); cursor: pointer; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .card .icon { font-size: 2.5em; margin-bottom: 10px; display: block; }
+        .card h4 { font-size: 1.3em; margin-bottom: 8px; color: var(--text-main); }
+        
+        /* XP System */
+        .xp-container { position: fixed; top: 20px; right: 20px; background: var(--bg-color); padding: 10px 20px; border-radius: 50px; box-shadow: var(--shadow); border: 1px solid var(--border); z-index: 1000; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .xp-bar-bg { width: 100px; height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; }
+        .xp-bar-fill { height: 100%; width: 0%; background: var(--secondary); transition: width 0.5s; }
+        .theme-toggle { position: fixed; top: 20px; left: 20px; background: var(--bg-color); border: 1px solid var(--border); border-radius: 50px; padding: 10px 20px; cursor: pointer; z-index: 1000; box-shadow: var(--shadow); color: var(--text-main); font-size: 1.2em; }
+        
+        /* IDE Editor */
+        .ide-wrapper { width: 100%; max-width: 600px; margin: 0 auto; background: var(--terminal-bg); border-radius: 10px; border: 1px solid #334155; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+        .ide-header { background: #252526; padding: 10px 15px; color: #858585; font-size: 0.9em; font-family: 'Consolas', monospace; display: flex; justify-content: space-between; border-bottom: 1px solid #334155; }
+        .ide-body { display: flex; flex: 1; min-height: 150px; }
+        .line-numbers { width: 40px; background: #1e1e1e; color: #858585; padding: 15px 10px; text-align: right; font-family: 'Consolas', monospace; font-size: 1.1em; line-height: 1.6; user-select: none; border-right: 1px solid #334155; overflow: hidden; white-space: pre; }
+        .code-area { position: relative; flex: 1; overflow: hidden; }
+        .editor-pre, .editor-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; font-family: 'Consolas', monospace; font-size: 1.1em; line-height: 1.6; margin: 0; border: none; white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; }
+        .editor-pre { color: var(--terminal-text); pointer-events: none; z-index: 1; background: transparent; }
+        .editor-textarea { color: transparent; background: transparent; caret-color: var(--secondary); resize: none; outline: none; z-index: 2; }
+        .btn-run { background: var(--primary); color: white; border: none; padding: 12px 25px; font-size: 1.1em; font-weight: bold; border-radius: 8px; cursor: pointer; margin: 10px auto; display: block; transition: all 0.2s; }
+        .btn-run:hover { background: #2563eb; transform: scale(1.05); }
+        .ide-output { background: #0c0c0c; color: var(--secondary); padding: 15px; font-family: 'Consolas', monospace; font-size: 1.1em; min-height: 60px; border-top: 1px solid #334155; white-space: pre-wrap; position: relative; }
+        .ide-output::before { content: "TERMINAL OUTPUT"; position: absolute; top: 0; left: 0; font-size: 0.6em; color: #64748b; padding: 2px 8px; background: #1e1e1e; border-bottom-right-radius: 5px; }
+        .syn-kw { color: #c678dd; font-weight: bold; } .syn-str { color: #98c379; } .syn-num { color: #d19a66; }
+        
+        /* Terminal */
+        .terminal { background: var(--terminal-bg); border-radius: 10px; padding: 15px; font-family: 'Consolas', monospace; font-size: 1.2em; color: var(--terminal-text); box-shadow: var(--shadow); margin: 10px 0; border: 1px solid #334155; min-height: 150px; display: flex; flex-direction: column; position: relative; }
+        .term-history { margin-bottom: 8px; flex: 1; overflow-y: auto; padding-top: 15px; }
+        .term-line { display: flex; align-items: center; gap: 8px; }
+        .term-prompt { color: var(--secondary); font-weight: bold; } .term-prompt.git { color: var(--accent); }
+        .term-input { flex: 1; background: transparent; border: none; color: var(--primary); font-family: 'Consolas', monospace; font-size: 1em; outline: none; caret-color: var(--secondary); }
+        .term-out { color: #94a3b8; padding-left: 15px; margin-bottom: 4px; white-space: pre-wrap; }
+        .term-out-success { color: var(--secondary); padding-left: 15px; margin-bottom: 4px; }
+        .term-out-error { color: var(--danger); padding-left: 15px; margin-bottom: 4px; }
+
+        /* Flowchart Shapes CSS (IMPROVED) */
+        .fc-container { display: flex; flex-direction: column; align-items: center; gap: 15px; margin: 20px 0; position: relative; }
+        .fc-row { display: flex; gap: 60px; align-items: flex-start; justify-content: center; position: relative; }
+        .fc-shape { display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; color: var(--text-main); background: var(--bg-color); border: 2px solid var(--primary); box-shadow: var(--shadow); min-width: 160px; min-height: 50px; padding: 15px; font-size: 1em; }
+        .fc-terminator { border-radius: 25px; border-color: var(--secondary); color: var(--secondary); }
+        .fc-process { border-radius: 0px; }
+        .fc-io { border-radius: 0px; transform: skewX(-15deg); min-width: 180px; } .fc-io span { transform: skewX(15deg); display: block; }
+        .fc-decision { border-radius: 0px; transform: rotate(45deg); width: 140px; height: 140px; min-height: 140px; } .fc-decision span { transform: rotate(-45deg); display: block; white-space: nowrap; }
+        .fc-arrow { font-size: 1.8em; color: var(--accent); line-height: 0.5; }
+        .fc-branch { display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; }
+        .fc-label { position: absolute; top: -15px; font-size: 0.9em; font-weight: bold; color: var(--text-light); background: var(--bg-color); padding: 0 5px; }
+        
+        .quiz-option { background: var(--bg-color); border: 1px solid var(--border); padding: 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; font-weight: 500; display: flex; align-items: center; gap: 15px; }
+        .quiz-option:hover { border-color: var(--primary); }
+        .quiz-option.correct { background: var(--secondary-light); border-color: var(--secondary); color: var(--secondary); }
+        .quiz-option.wrong { background: #fff5f5; border-color: var(--danger); color: var(--danger); }
+        body.dark-mode .quiz-option.wrong { background: #450a0a; }
+        .quiz-icon { font-size: 1.5em; }
+        
+        .checklist-item { display: flex; align-items: center; gap: 15px; background: var(--bg-color); border: 1px solid var(--border); padding: 15px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .checklist-item:hover { border-color: var(--primary); }
+        .checklist-item.done { background: var(--secondary-light); border-color: var(--secondary); }
+        .checklist-box { width: 30px; height: 30px; border: 2px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 1.2em; }
+        .checklist-item.done .checklist-box { background: var(--secondary); border-color: var(--secondary); }
+
+        .nav { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; }
+        .nav button { background: var(--bg-color); border: 1px solid var(--border); color: var(--text-main); width: 50px; height: 50px; border-radius: 50%; font-size: 1.2em; cursor: pointer; box-shadow: var(--shadow); transition: all 0.2s; }
+        .nav button:hover { background: var(--primary); color: white; transform: scale(1.1); }
+        .counter { position: fixed; bottom: 20px; left: 20px; color: var(--text-light); font-size: 1.1em; background: var(--bg-color); padding: 10px 20px; border-radius: 50px; box-shadow: var(--shadow); border: 1px solid var(--border); z-index: 1000; }
+        .counter span { color: var(--primary); font-weight: bold; }
+        .progress-bar { position: fixed; top: 0; left: 0; height: 5px; background: linear-gradient(90deg, var(--primary), var(--secondary)); width: 0%; transition: width 0.3s ease; z-index: 1000; }
+        
+        .reveal-box { display: none; margin-top: 15px; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+<div class="xp-container">
+    <span>XP</span>
+    <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBar"></div></div>
+    <span id="xpVal">0</span>
+</div>
+<div class="counter">Slide <span id="current">1</span> / <span id="total">32</span></div>
+
+<div class="slides-container" id="slidesContainer">
+
+    <!-- 1. COVER -->
+    <div class="slide active" data-slide="1">
+        <div class="anim badge">🗺️ Ruang Perancang (The Blueprint Room)</div>
+        <h1 class="anim">Algoritma, Flowchart & Pseudocode</h1>
+        <p class="anim">Berpikir Sebelum Menulis Kode</p>
+        <div class="anim box info" style="text-align: center; margin-top: 20px;">
+            <p style="margin: 0; font-size: 1em; color: var(--text-main);">🧑‍💻 Disusun oleh: <b>Muhammad Ikhwan Fathulloh</b> | <a href="https://one.nocturnailed.com/" target="_blank">one.nocturnailed.com</a></p>
+        </div>
+    </div>
+
+    <!-- 2. RECAP & BRIDGE -->
+    <div class="slide" data-slide="2">
+        <h2 class="anim">Recall: Session 1</h2>
+        <p class="anim">Kamu sudah tahu CARA komputer menjalankan perintah. Sekarang: bagaimana MENYUSUN perintah yang benar?</p>
+        <div class="anim">
+            <div class="quiz-option" onclick="checkQuiz(this, true, 'q1')"><span class="quiz-icon">💻</span> Apa yang menerjemahkan kode C ke biner?</div>
+            <div class="quiz-option" onclick="checkQuiz(this, false, 'q1')"><span class="quiz-icon">🐍</span> Python Interpreter</div>
+            <div class="quiz-option" onclick="checkQuiz(this, false, 'q1')"><span class="quiz-icon">⚙️</span> CPU</div>
+            <p style="font-size: 0.9em; text-align: center;" id="q1"></p>
+        </div>
+    </div>
+
+    <!-- 3. PEMANTIK: ROBOT MIE INSTAN -->
+    <div class="slide" data-slide="3">
+        <h2 class="anim">🤖 Perintahkan Robot Buat Mie Instan</h2>
+        <p class="anim">Komputer itu robot yang patuh, tapi tidak pintar. Urutan salah = hasil kacau.</p>
+        <div class="anim box" style="text-align: center;">
+            <p>Pilih urutan yang benar:</p>
+            <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: 0 auto;">
+                <button class="quiz-option" onclick="checkMie(1, this)">1. Tuang air ke mangkok</button>
+                <button class="quiz-option" onclick="checkMie(2, this)">2. Buka bungkus mie</button>
+                <button class="quiz-option" onclick="checkMie(3, this)">3. Masukkan mie</button>
+                <button class="quiz-option" onclick="checkMie(4, this)">4. Rebus air hingga mendidih</button>
+            </div>
+            <div class="reveal-box" id="mie-reveal" style="text-align: left;">
+                <div class="box success">
+                    <span class="label">✅ Algoritma yang Benar:</span>
+                    <p style="margin:0;">1. Buka bungkus mie.<br>2. Rebus air hingga mendidih.<br>3. Masukkan mie ke air mendidih.<br>4. Tunggu 3 menit.<br>5. Tuang air dan mie ke mangkok.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MASALAH SEBENARNYA -->
+    <div class="slide" data-slide="4">
+        <h2 class="anim">Masalah Sebenarnya</h2>
+        <div class="anim cards">
+            <div class="card"><span class="icon">🤖</span><h4>Patuh</h4><p>Melakukan persis apa yang diperintahkan.</p></div>
+            <div class="card"><span class="icon">🚫</span><h4>Tidak Pintar</h4><p>Tidak bisa menebak niatmu. Tidak ada "common sense".</p></div>
+            <div class="card"><span class="icon">💡</span><h4>Solusi</h4><p>Butuh instruksi yang sangat tepat dan terurut (Algoritma).</p></div>
+        </div>
+    </div>
+
+    <!-- 5. BERPIKIR KOMPUTASI (NEW) -->
+    <div class="slide" data-slide="5">
+        <h2 class="anim">🧠 Berpikir Komputasi (Computational Thinking)</h2>
+        <p class="anim">Sebelum bikin algoritma, kita harus berpikir komputasi. Ini 4 langkahnya:</p>
+        <div class="anim cards">
+            <div class="card" style="border-color: var(--primary);"><span class="icon">🧩</span><h4>1. Dekomposisi</h4><p>Memecah masalah besar jadi bagian kecil yang mudah dikelola.</p></div>
+            <div class="card" style="border-color: var(--accent);"><span class="icon">🔍</span><h4>2. Pengenalan Pola</h4><p>Mencari kesamaan/pola berulang dalam masalah.</p></div>
+            <div class="card" style="border-color: var(--secondary);"><span class="icon">💡</span><h4>3. Abstraksi</h4><p>Fokus pada hal penting, abaikan detail yang tidak relevan.</p></div>
+            <div class="card" style="border-color: var(--danger);"><span class="icon">📝</span><h4>4. Desain Algoritma</h4><p>Menyusun langkah-langkah logis penyelesaian masalah.</p></div>
+        </div>
+    </div>
+
+    <!-- 6. PETA ALUR -->
+    <div class="slide" data-slide="6">
+        <h2 class="anim">Peta Alur Programmer</h2>
+        <p class="anim">Jangan langsung ngoding! Ikuti alur ini:</p>
+        <div class="anim fc-container">
+            <div class="fc-shape fc-terminator" style="border-color: var(--danger); color: var(--danger);">MASALAH</div>
+            <div class="fc-arrow">↓</div>
+            <div class="fc-shape" style="border-color: var(--accent); color: var(--accent);">ALGORITMA (Rancangan)</div>
+            <div class="fc-arrow">↓</div>
+            <div class="fc-shape fc-process">FLOWCHART / PSEUDOCODE</div>
+            <div class="fc-arrow">↓</div>
+            <div class="fc-shape" style="border-color: var(--primary); color: var(--primary);">KODE (PY/C)</div>
+            <div class="fc-arrow">↓</div>
+            <div class="fc-shape" style="border-color: var(--secondary); color: var(--secondary);">RUN & GITHUB</div>
+        </div>
+    </div>
+
+    <!-- 7. APA ITU ALGORITMA -->
+    <div class="slide" data-slide="7">
+        <h2 class="anim">Apa itu Algoritma?</h2>
+        <p class="anim">Sekumpulan langkah-langkah yang jelas dan berhingga untuk menyelesaikan suatu masalah.</p>
+        <div class="anim cards">
+            <div class="card"><span class="icon">🍲</span><h4>Resep Masakan</h4><p>Langkah membuat mie instan.</p></div>
+            <div class="card"><span class="icon">🗺️</span><h4>Rute Maps</h4><p>Langkah berjalan dari A ke B.</p></div>
+            <div class="card"><span class="icon">🏧</span><h4>ATM</h4><p>Langkah ambil uang tunai.</p></div>
+        </div>
+    </div>
+
+    <!-- 8. CIRI-CIRI ALGORITMA -->
+    <div class="slide" data-slide="8">
+        <h2 class="anim">Ciri-Ciri Algoritma</h2>
+        <p class="anim">Klik kartu untuk melihat contohnya:</p>
+        <div class="anim cards">
+            <div class="card" onclick="showFeature(1, this)"><span class="icon"> clarity</span><h4>Jelas (Definite)</h4></div>
+            <div class="card" onclick="showFeature(2, this)"><span class="icon">⏳</span><h4>Berhingga (Finite)</h4></div>
+            <div class="card" onclick="showFeature(3, this)"><span class="icon">🔄</span><h4>Input/Output</h4></div>
+            <div class="card" onclick="showFeature(4, this)"><span class="icon">✅</span><h4>Efektif</h4></div>
+        </div>
+        <div class="anim box info" id="feature-box" style="margin-top: 15px; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+            <p style="margin:0; text-align:center;">Klik kartu di atas...</p>
+        </div>
+    </div>
+
+    <!-- 9. ALGORITMA BURUK VS BAIK -->
+    <div class="slide" data-slide="9">
+        <h2 class="anim">Studi Kasus: Algoritma Buruk vs Baik</h2>
+        <div class="anim" style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="box warning">
+                <span class="label" style="color: var(--danger);">❌ Buruk (Ambigu)</span>
+                <p style="margin:0;">1. Masak mie.<br>2. Kalau sudah matang, tiriskan.</p>
+                <p style="margin-top:10px; font-size:0.9em; color:var(--text-main);"><b>Kenapa buruk?</b> Tidak jelas berapa lama masak, bagaimana cara meniriskan.</p>
+            </div>
+            <div class="box success">
+                <span class="label" style="color: var(--secondary);">✅ Baik (Jelas)</span>
+                <p style="margin:0;">1. Didihkan 400ml air.<br>2. Masukkan mie, masak 3 menit.<br>3. Angkat dan buang air.</p>
+                <p style="margin-top:10px; font-size:0.9em; color:var(--text-main);"><b>Kenapa baik?</b> Semua orang pasti melakukan hal yang persis sama.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. TIGA CARA MENYATAKAN ALGORITMA -->
+    <div class="slide" data-slide="10">
+        <h2 class="anim">Tiga Cara Menyatakan Algoritma</h2>
+        <div class="anim cards">
+            <div class="card"><span class="icon">🗣️</span><h4>Bahasa Natural</h4><p>Gampang dibaca manusia, tapi ambigu.</p></div>
+            <div class="card"><span class="icon">📊</span><h4>Flowchart</h4><p>Visual diagram alur. Jelas melihat cabang.</p></div>
+            <div class="card"><span class="icon">📝</span><h4>Pseudocode</h4><p>Mirip kode, tapi bukan bahasa asli.</p></div>
+        </div>
+    </div>
+
+    <!-- 11. FLOWCHART: KENAPA VISUAL -->
+    <div class="slide" data-slide="11">
+        <h2 class="anim">Flowchart: Kenapa Visual Membantu?</h2>
+        <p class="anim">Flowchart membantu kita melihat percabangan dan perulangan secara visual sebelum tersesat di dalam kode.</p>
+        <div class="anim fc-container">
+            <div class="fc-shape fc-terminator">START</div>
+            <div class="fc-arrow">↓</div>
+            <div class="fc-shape fc-process">Proses A</div>
+            <div class="fc-arrow">↓</div>
+            <div class="fc-shape fc-decision"><span>Kondisi?</span></div>
+        </div>
+    </div>
+
+    <!-- 12. SIMBOL FLOWCHART -->
+    <div class="slide" data-slide="12">
+        <h2 class="anim">Simbol Flowchart Dasar</h2>
+        <p class="anim">Klik simbol untuk lihat fungsinya:</p>
+        <div class="anim fc-row">
+            <div class="fc-shape fc-terminator" onclick="showSym(1, this)">START</div>
+            <div class="fc-shape fc-process" onclick="showSym(2, this)">Proses</div>
+            <div class="fc-shape fc-io" onclick="showSym(3, this)"><span>Input/Output</span></div>
+            <div class="fc-shape fc-decision" onclick="showSym(4, this)"><span>Ya?</span></div>
+        </div>
+        <div class="anim box info" id="sym-box" style="margin-top: 20px; min-height: 60px; display:flex; align-items:center; justify-content:center;">
+            <p style="margin:0;">Klik simbol untuk melihat penjelasan...</p>
+        </div>
+    </div>
+
+    <!-- 13. ATURAN FLOWCHART -->
+    <div class="slide" data-slide="13">
+        <h2 class="anim">Aturan Menggambar Flowchart</h2>
+        <ul class="anim">
+            <li><b>Arah Alur:</b> Dari atas ke bawah, kiri ke kanan.</li>
+            <li><b>Start & End:</b> Wajib punya satu Start dan minimal satu End.</li>
+            <li><b>Decision:</b> Selalu beri label Ya/Tidak (Yes/No) di tiap cabang panah keluar.</li>
+            <li><b>Garis Panah:</b> Jangan menyilang agar mudah dibaca.</li>
+        </ul>
+    </div>
+
+    <!-- 14. PRAKTIK INTERAKTIF 1: SUSUN FLOWCHART -->
+    <div class="slide" data-slide="14">
+        <h2 class="anim">Studi Kasus: Cek Genap/Ganjil</h2>
+        <p class="anim">Klik tombol sesuai urutan algoritma yang benar:</p>
+        <div class="anim box" id="fc-practice">
+            <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+                <button class="quiz-option" onclick="checkFC(1, this)">START</button>
+                <button class="quiz-option" onclick="checkFC(2, this)">Input Angka</button>
+                <button class="quiz-option" onclick="checkFC(3, this)">Bagi 2, sisa = ?</button>
+                <button class="quiz-option" onclick="checkFC(4, this)">Apakah sisa = 0?</button>
+                <button class="quiz-option" onclick="checkFC(5, this)">Output "Genap" / "Ganjil"</button>
+                <button class="quiz-option" onclick="checkFC(6, this)">END</button>
+            </div>
+            <p id="fc-result" style="text-align:center; margin-top:15px; font-weight:bold; color:var(--primary);">Urutan saat ini: ...</p>
+            
+            <div class="reveal-box" id="fc-solution" style="text-align: left;">
+                <div class="box info">
+                    <span class="label">Visual Flowchart & Penjelasan Detail:</span>
+                    <div class="fc-container" style="margin:0;">
+                        <div class="fc-shape fc-terminator" style="min-width:100px;">START</div>
+                        <div class="fc-arrow">↓</div>
+                        <div class="fc-shape fc-io"><span>INPUT angka</span></div>
+                        <div class="fc-arrow">↓</div>
+                        <div class="fc-shape fc-process">sisa = angka % 2</div>
+                        <div class="fc-arrow">↓</div>
+                        <div class="fc-shape fc-decision"><span>sisa == 0 ?</span></div>
+                        <div class="fc-row">
+                            <div class="fc-branch">
+                                <span class="fc-label">YA</span>
+                                <div class="fc-arrow">↓</div>
+                                <div class="fc-shape fc-io" style="border-color:var(--secondary); color:var(--secondary);"><span>"GENAP"</span></div>
+                            </div>
+                            <div class="fc-branch">
+                                <span class="fc-label" style="color:var(--danger);">TIDAK</span>
+                                <div class="fc-arrow">↓</div>
+                                <div class="fc-shape fc-io" style="border-color:var(--danger); color:var(--danger);"><span>"GANJIL"</span></div>
+                            </div>
+                        </div>
+                        <div class="fc-row">
+                            <div class="fc-arrow">↓</div>
+                            <div class="fc-arrow">↓</div>
+                        </div>
+                        <div class="fc-shape fc-terminator" style="border-color:var(--text-light); color:var(--text-light); min-width:100px;">END</div>
+                    </div>
+                    <p style="margin-top:15px; font-size:0.9em;">Alur di atas memastikan komputer mengecek sisa pembagian. Jika sisa 0, cetak Genap. Jika bukan 0 (Tidak), cetak Ganjil. Kedua cabang akan bertemu di akhir (END).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 15. PSEUDOCODE -->
+    <div class="slide" data-slide="15">
+        <h2 class="anim">Pseudocode</h2>
+        <p class="anim">Bahasa perantara antara manusia dan kode. Tidak punya aturan baku, tapi harus logis.</p>
+        <div class="anim box">
+            <pre style="margin:0; background: var(--code-bg); padding:15px; border-radius:8px; color:var(--text-main); font-family:monospace; font-size:1.1em;"><code>MULAI
+  INPUT nilai
+  JIKA nilai >= 75 MAKA
+    OUTPUT "LULUS"
+  SELAIN ITU
+    OUTPUT "REMEDIAL"
+SELESAI</code></pre>
+        </div>
+    </div>
+
+    <!-- 16. ATURAN PSEUDOCODE -->
+    <div class="slide" data-slide="16">
+        <h2 class="anim">Anatomi Pseudocode</h2>
+        <div class="anim box">
+            <pre style="margin:0; background: var(--code-bg); padding:15px; border-radius:8px; color:var(--text-main); font-family:monospace; font-size:1.1em;"><code>MULAI                     // Titik mula
+  INPUT harga, jumlah      // Minta data
+  total = harga * jumlah   // Proses hitung
+  OUTPUT total             // Tampilkan hasil
+SELESAI                   // Titik akhir</code></pre>
+        </div>
+        <p class="anim">Gunakan kata kunci yang jelas, beri indentasi (spasi masuk) untuk blok di dalam JIKA atau ULANGI.</p>
+    </div>
+
+    <!-- 17. PSEUDOCODE VS PYTHON VS C -->
+    <div class="slide" data-slide="17">
+        <h2 class="anim">Pemetaan: Pseudocode ke Python & C</h2>
+        <div class="anim" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+            <div class="box"><h3 style="color:var(--accent);">Pseudocode</h3><p style="font-family:monospace; font-size:1em; white-space:pre-wrap; margin:0;">JIKA nilai >= 75 MAKA
+  OUTPUT "LULUS"
+SELAIN ITU
+  OUTPUT "REMEDIAL"</p></div>
+            <div class="box"><h3 style="color:var(--secondary);">Python</h3><p style="font-family:monospace; font-size:1em; white-space:pre-wrap; margin:0;">if nilai >= 75:
+    print("LULUS")
+else:
+    print("REMEDIAL")</p></div>
+            <div class="box"><h3 style="color:var(--danger);">C</h3><p style="font-family:monospace; font-size:1em; white-space:pre-wrap; margin:0;">if (nilai >= 75) {
+    printf("LULUS");
+} else {
+    printf("REMEDIAL");
+}</p></div>
+        </div>
+        <p class="anim" style="text-align:center; margin-top:15px;">Ide yang sama, ditulis dalam bentuk berbeda. Jika pseudocode benar, menulis Python/C jadi mudah.</p>
+    </div>
+
+    <!-- 18. STRUKTUR 1: SEQUENCE -->
+    <div class="slide" data-slide="18">
+        <h2 class="anim">Struktur 1: Sequence (Urutan)</h2>
+        <p class="anim">Langkah berurutan dari atas ke bawah. Studi Kasus: Kasir Sederhana.</p>
+        <div class="anim" style="display:grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+            <div class="box info">
+                <span class="label">Algoritma</span>
+                <p style="margin:0; font-size:1em;">1. Input harga<br>2. Input jumlah<br>3. total = harga * jumlah<br>4. Output total</p>
+            </div>
+            <div class="box ide-wrapper" style="max-width:none;">
+                <div class="ide-header"><span>kasir.py</span><span>Python</span></div>
+                <div class="ide-body">
+                    <div class="line-numbers" id="ln1"></div>
+                    <div class="code-area">
+                        <pre class="editor-pre" id="hl1"></pre>
+                        <textarea class="editor-textarea" id="code1" spellcheck="false" oninput="syncEditor(1)">harga = 2000
+jumlah = 5
+total = harga * jumlah
+print("Total:", total)</textarea>
+                    </div>
+                </div>
+                <button class="btn-run" onclick="runCode(1)">▶ Run Kode</button>
+                <div class="ide-output" id="out1">// Terminal Output...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 19. STRUKTUR 2: SELECTION -->
+    <div class="slide" data-slide="19">
+        <h2 class="anim">Struktur 2: Selection (Percabangan)</h2>
+        <p class="anim">Pengambilan keputusan. Studi Kasus: Cek Kelulusan >= 75.</p>
+        <div class="anim" style="display:grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+            <div class="box info">
+                <span class="label">Algoritma</span>
+                <p style="margin:0; font-size:1em;">1. Input nilai<br>2. Jika nilai >= 75:<br>&nbsp;&nbsp;Output "LULUS"<br>3. Jika tidak:<br>&nbsp;&nbsp;Output "REMEDIAL"</p>
+            </div>
+            <div class="box ide-wrapper" style="max-width:none;">
+                <div class="ide-header"><span>nilai.py</span><span>Python</span></div>
+                <div class="ide-body">
+                    <div class="line-numbers" id="ln2"></div>
+                    <div class="code-area">
+                        <pre class="editor-pre" id="hl2"></pre>
+                        <textarea class="editor-textarea" id="code2" spellcheck="false" oninput="syncEditor(2)">nilai = 80
+
+if nilai >= 75:
+    print("LULUS")
+else:
+    print("REMEDIAL")</textarea>
+                    </div>
+                </div>
+                <button class="btn-run" onclick="runCode(2)">▶ Run Kode</button>
+                <div class="ide-output" id="out2">// Terminal Output...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 20. STRUKTUR 3: REPETITION -->
+    <div class="slide" data-slide="20">
+        <h2 class="anim">Struktur 3: Repetition (Perulangan)</h2>
+        <p class="anim">Mengulang langkah. Studi Kasus: Menjumlahkan angka 1 sampai 5.</p>
+        <div class="anim" style="display:grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+            <div class="box info">
+                <span class="label">Algoritma</span>
+                <p style="margin:0; font-size:1em;">1. total = 0<br>2. Ulangi untuk i dari 1 s.d 5:<br>&nbsp;&nbsp;total = total + i<br>3. Output total</p>
+                <p style="font-size:0.9em; margin-top:10px;">(1+2+3+4+5 = 15)</p>
+            </div>
+            <div class="box ide-wrapper" style="max-width:none;">
+                <div class="ide-header"><span>loop.py</span><span>Python</span></div>
+                <div class="ide-body">
+                    <div class="line-numbers" id="ln3"></div>
+                    <div class="code-area">
+                        <pre class="editor-pre" id="hl3"></pre>
+                        <textarea class="editor-textarea" id="code3" spellcheck="false" oninput="syncEditor(3)">total = 0
+for i in range(1, 6):
+    total = total + i
+print("Total 1-5:", total)</textarea>
+                    </div>
+                </div>
+                <button class="btn-run" onclick="runCode(3)">▶ Run Kode</button>
+                <div class="ide-output" id="out3">// Terminal Output...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 21. PRAKTIK PYTHON 1 -->
+    <div class="slide" data-slide="21">
+        <h2 class="anim">Praktik Python: Ubah Pseudocode ke Kode</h2>
+        <p class="anim">Lengkapi kode kasir di bawah berdasarkan pseudocode.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>kasir2.py</span><span>Python</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln4"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl4"></pre>
+                    <textarea class="editor-textarea" id="code4" spellcheck="false" oninput="syncEditor(4)"># PSEUDOCODE:
+# INPUT harga = 5000, jumlah = 4
+# total = harga * jumlah
+# OUTPUT total
+
+harga = 5000
+jumlah = 4
+# Tulis kode total dan print di bawah ini:
+</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(4)">▶ Run Kode</button>
+            <div class="ide-output" id="out4">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 22. PRAKTIK PYTHON 2 -->
+    <div class="slide" data-slide="22">
+        <h2 class="anim">Praktik Python: Selection (If/Else)</h2>
+        <p class="anim">Coba ubah nilai <code>nilai_ujian</code> menjadi 60.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>ujian.py</span><span>Python</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln5"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl5"></pre>
+                    <textarea class="editor-textarea" id="code5" spellcheck="false" oninput="syncEditor(5)">nilai_ujian = 90
+
+if nilai_ujian >= 75:
+    print("Kamu Lulus!")
+else:
+    print("Ikut Remedial.")</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(5)">▶ Run Kode</button>
+            <div class="ide-output" id="out5">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 23. PRAKTIK PYTHON 3 -->
+    <div class="slide" data-slide="23">
+        <h2 class="anim">Praktik Python: Loop Sederhana</h2>
+        <p class="anim">Mencetak teks "Halo" sebanyak 3 kali.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>ulang.py</span><span>Python</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln6"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl6"></pre>
+                    <textarea class="editor-textarea" id="code6" spellcheck="false" oninput="syncEditor(6)">for i in range(1, 4):
+    print("Halo ke-", i)</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(6)">▶ Run Kode</button>
+            <div class="ide-output" id="out6">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 24. PRAKTIK C 1 -->
+    <div class="slide" data-slide="24">
+        <h2 class="anim">Praktik C: Selection</h2>
+        <p class="anim">Ingat: Di C harus pakai <code>int main()</code> dan <code>printf</code>.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>nilai.c</span><span>C Language</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln7"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl7"></pre>
+                    <textarea class="editor-textarea" id="code7" spellcheck="false" oninput="syncEditor(7)">#include <stdio.h>
+
+int main() {
+    int nilai = 80;
+    if (nilai >= 75) {
+        printf("LULUS");
+    } else {
+        printf("REMEDIAL");
+    }
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(7)">▶ Run Kode</button>
+            <div class="ide-output" id="out7">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 25. PRAKTIK C 2 -->
+    <div class="slide" data-slide="25">
+        <h2 class="anim">Praktik C: Sequence</h2>
+        <p class="anim">Python dan C menghasilkan output yang sama persis jika algoritmanya sama.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>hitung.c</span><span>C Language</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln8"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl8"></pre>
+                    <textarea class="editor-textarea" id="code8" spellcheck="false" oninput="syncEditor(8)">#include <stdio.h>
+
+int main() {
+    int a = 10, b = 20;
+    int total = a + b;
+    printf("Total: %d", total);
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(8)">▶ Run Kode</button>
+            <div class="ide-output" id="out8">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 26. PRAKTIK CLI -->
+    <div class="slide" data-slide="26">
+        <h2 class="anim">Praktik CLI: Buat & Jalankan</h2>
+        <p class="anim">Ketik di terminal: <code>mkdir sesi2</code>, <code>cd sesi2</code>, <code>python3 nilai.py</code></p>
+        <div class="anim terminal" onclick="document.getElementById('term-input1').focus()">
+            <div class="term-history" id="term-history1"><div class="term-out">Selamat datang di CLI. Ketik perintah...</div></div>
+            <div class="term-line"><span class="term-prompt">➜ ~</span><input type="text" class="term-input" id="term-input1" autocomplete="off"></div>
+        </div>
+    </div>
+
+    <!-- 27. KESALAHAN UMUM (DEBUG THE DESIGN) -->
+    <div class="slide" data-slide="27">
+        <h2 class="anim">Debug the Design: Kesalahan Umum</h2>
+        <p class="anim">Klik error di bawah untuk lihat solusinya:</p>
+        <div class="anim">
+            <div class="quiz-option" onclick="showDebug(1, this)"><span class="quiz-icon">🏃</span> Langsung ngoding tanpa rencana</div>
+            <div class="quiz-option" onclick="showDebug(2, this)"><span class="quiz-icon">♾️</span> Flowchart tidak ada ujung (End)</div>
+            <div class="quiz-option" onclick="showDebug(3, this)"><span class="quiz-icon">💻</span> Pseudocode terlalu mirip kode asli</div>
+            <div class="quiz-option" onclick="showDebug(4, this)"><span class="quiz-icon">❓</span> Kondisi ambigu (misal: "kalau lumayan lulus")</div>
+        </div>
+        <div class="anim box info" id="debug-box" style="margin-top: 15px; min-height: 80px; display:flex; align-items:center; justify-content:center;">
+            <p style="margin:0; text-align:center;">Klik error untuk melihat solusi...</p>
+        </div>
+    </div>
+
+    <!-- 28. QUIZ 1: SIMBOL FLOWCHART -->
+    <div class="slide" data-slide="28">
+        <h2 class="anim">Quiz 1: Simbol Flowchart</h2>
+        <p class="anim">Simbol apa yang digunakan untuk pertanyaan/percabangan?</p>
+        <div class="anim">
+            <div class="quiz-option" onclick="checkQuiz(this, false, 'q2')"><span class="quiz-icon">⬭</span> Oval (Terminator)</div>
+            <div class="quiz-option" onclick="checkQuiz(this, false, 'q2')"><span class="quiz-icon">▭</span> Persegi (Process)</div>
+            <div class="quiz-option" onclick="checkQuiz(this, true, 'q2')" id="q2"><span class="quiz-icon">◇</span> Belah Ketupat (Decision)</div>
+        </div>
+    </div>
+
+    <!-- 29. QUIZ 2: URUTKAN PSEUDOCODE -->
+    <div class="slide" data-slide="29">
+        <h2 class="anim">Quiz 2: Urutkan Pseudocode</h2>
+        <p class="anim">Urutkan langkah cek genap/ganjil dengan klik tombol sesuai urutan yang benar!</p>
+        <div class="anim box">
+            <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+                <button class="quiz-option" onclick="checkOrder(1, this)">END</button>
+                <button class="quiz-option" onclick="checkOrder(2, this)">IF sisa = 0</button>
+                <button class="quiz-option" onclick="checkOrder(3, this)">START</button>
+                <button class="quiz-option" onclick="checkOrder(4, this)">INPUT angka</button>
+                <button class="quiz-option" onclick="checkOrder(5, this)">OUTPUT "Genap"</button>
+                <button class="quiz-option" onclick="checkOrder(6, this)">sisa = angka % 2</button>
+            </div>
+            <p id="order-result" style="text-align:center; margin-top:15px; font-weight:bold; color:var(--primary);">Klik urutan yang benar...</p>
+        </div>
+    </div>
+
+    <!-- 30. PETA JALAN -->
+    <div class="slide" data-slide="30">
+        <h2 class="anim">Peta Jalan: Apa Selanjutnya?</h2>
+        <div class="anim" style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="box success">
+                <span class="label" style="color: var(--secondary);">✅ Dipelajari Sekarang</span>
+                <p style="margin:0;">Konsep dasar algoritma, flowchart, pseudocode, 3 struktur (Sequence, Selection, Repetition), dan implementasi Python/C dasar.</p>
+            </div>
+            <div class="box info">
+                <span class="label" style="color: var(--primary);">🚀 Di Mata Kuliah "Algoritma Pemrograman"</span>
+                <p style="margin:0;">Kompleksitas waktu/ruang (Big-O), Sorting (Mengurutkan), Searching (Mencari), Rekursi, Struktur Data (Array, Tree, Graph), dan optimasi.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 31. FINAL MISSION -->
+    <div class="slide" data-slide="31">
+        <h2 class="anim">✅ Final Mission: Rancang & Deploy!</h2>
+        <p class="anim">Klik checklist setelah selesai. Wajib pakai CLI & Git!</p>
+        <div class="anim">
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>1. Pilih satu masalah sehari-hari (misal: resep minuman).</div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>2. Tulis algoritma dalam langkah-langkah.</div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>3. Gambar flowchart (boleh draw.io / kertas).</div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>4. Tulis pseudocode di file README.md.</div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>5. Implementasikan di Python atau C, jalankan via CLI.</div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>6. Git commit & push ke GitHub dalam folder "session-2".</div>
+        </div>
+    </div>
+
+    <!-- 32. PENUTUP & REFERENSI -->
+    <div class="slide" data-slide="32" style="text-align: center;">
+        <div class="anim badge">🎉 Penutup Session 2</div>
+        <h1 class="anim">Berpikir Dulu, Kode Nanti</h1>
+        <div class="anim box" style="max-width: 600px; margin: 20px auto; text-align: left;">
+            <span class="label">📚 Referensi</span>
+            <p style="font-size: 1em;">
+            1. Munir, R. <i>Algoritma dan Pemrograman</i>. Informatika Bandung.<br>
+            2. Sebesta, R. W. <i>Concepts of Programming Languages</i>. Pearson.<br>
+            3. Kernighan, B. W., & Ritchie, D. M. <i>The C Programming Language</i>.<br>
+            4. Python Software Foundation. <i>Python 3 Documentation</i>.<br>
+            5. Shotts, W. <i>The Linux Command Line</i>.<br>
+            6. Wing, J. M. <i>Computational Thinking</i> (Referensi konsep berpikir komputasi).<br>
+            7. Cormen, T. H., dkk. <i>Introduction to Algorithms</i> (Referensi lanjutan).
+            </p>
+        </div>
+        <p class="anim" style="font-size: 1.2em; margin-top: 20px;"><b>Muhammad Ikhwan Fathulloh</b> | <a href="https://one.nocturnailed.com/" target="_blank">one.nocturnailed.com</a></p>
+    </div>
+
+</div>
+
+<div class="nav">
+    <button onclick="prevSlide()" id="prevBtn">←</button>
+    <button onclick="nextSlide()" id="nextBtn">→</button>
+</div>
+
+<script>
+    let currentSlide = 1;
+    const totalSlides = 32;
+    const slides = document.querySelectorAll('.slide');
+    const progressBar = document.getElementById('progressBar');
+    const currentSpan = document.getElementById('current');
+    
+    // XP System
+    let xp = 0;
+    function addXP(val) {
+        xp += val;
+        document.getElementById('xpVal').innerText = xp;
+        document.getElementById('xpBar').style.width = Math.min(100, xp) + '%';
+    }
+
+    function updateSlide() {
+        slides.forEach((slide, index) => {
+            slide.classList.remove('active', 'prev');
+            if (index + 1 === currentSlide) {
+                slide.classList.add('active');
+                if (slide.querySelector('.editor-textarea')) {
+                    let id = slide.querySelector('.editor-textarea').id.replace('code', '');
+                    syncEditor(id);
+                }
+            } else if (index + 1 < currentSlide) {
+                slide.classList.add('prev');
+            }
+        });
+        currentSpan.textContent = currentSlide;
+        progressBar.style.width = (currentSlide / totalSlides * 100) + '%';
+    }
+
+    function nextSlide() { if (currentSlide < totalSlides) { currentSlide++; updateSlide(); } }
+    function prevSlide() { if (currentSlide > 1) { currentSlide--; updateSlide(); } }
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextSlide(); } 
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevSlide(); }
+    });
+
+    // --- Quiz & Interactive Visuals Logic ---
+    function checkQuiz(el, isCorrect, btnId) {
+        if (el.classList.contains('correct') || el.classList.contains('wrong')) return;
+        if (isCorrect) {
+            el.classList.add('correct');
+            addXP(10);
+        } else {
+            el.classList.add('wrong');
+            document.getElementById(btnId).classList.add('correct');
+        }
+    }
+
+    function checkMie(step, el) {
+        if (el.classList.contains('correct')) return;
+        if (step === 2) {
+            el.classList.add('correct');
+            document.getElementById('mie-reveal').style.display = 'block';
+            addXP(10);
+        } else {
+            el.classList.add('wrong');
+        }
+    }
+
+    function showFeature(id, el) {
+        const box = document.getElementById('feature-box');
+        document.querySelectorAll('.card').forEach(c => c.style.borderColor = 'var(--border)');
+        el.style.borderColor = 'var(--primary)';
+        let content = '';
+        if (id === 1) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Jelas (Definite):</b> Setiap langkah tidak ambigu. <br>Contoh: 'Masak 3 menit' (Bukan: 'Masak sebentar').</p>";
+        if (id === 2) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Berhingga (Finite):</b> Punya akhir. <br>Contoh: 'Setelah 3 menit, matikan api'. Tidak boleh loop tanpa henti.</p>";
+        if (id === 3) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Input/Output:</b> Menerima data masukan dan menghasilkan keluaran. <br>Contoh: Input: Mie mentah. Output: Mie matang.</p>";
+        if (id === 4) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Efektif:</b> Langkahnya benar-benar menyelesaikan masalah. <br>Contoh: Air mendidih bisa merebus mie.</p>";
+        box.innerHTML = content;
+    }
+
+    function showSym(id, el) {
+        const box = document.getElementById('sym-box');
+        document.querySelectorAll('.fc-shape').forEach(c => c.style.borderColor = 'var(--primary)');
+        el.style.borderColor = 'var(--accent)';
+        let content = '';
+        if (id === 1) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Terminator (Oval):</b> Mulai (Start) atau Selesai (End).</p>";
+        if (id === 2) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Process (Persegi):</b> Proses perhitungan atau penugasan variabel.</p>";
+        if (id === 3) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Input/Output (Jajaran Genjang):</b> Menerima input dari user atau menampilkan output.</p>";
+        if (id === 4) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Decision (Belah Ketupat):</b> Pertanyaan Ya/Tidak untuk percabangan.</p>";
+        box.innerHTML = content;
+    }
+
+    let fcOrder = [];
+    function checkFC(step, el) {
+        if (el.classList.contains('correct')) return;
+        if (step === fcOrder.length + 1) {
+            el.classList.add('correct');
+            fcOrder.push(step);
+            document.getElementById('fc-result').innerText = "Urutan: " + fcOrder.join(' -> ');
+            if (fcOrder.length === 6) {
+                document.getElementById('fc-result').innerText = "Urutan Benar! Lihat flowchart di bawah.";
+                document.getElementById('fc-solution').style.display = 'block';
+                addXP(20);
+            }
+        } else {
+            el.classList.add('wrong');
+            document.getElementById('fc-result').innerText = "Salah urutan! Pikirkan logikanya dari awal.";
+        }
+    }
+
+    let pseudoOrder = [];
+    const correctOrder = [3, 4, 6, 2, 5, 1];
+    function checkOrder(step, el) {
+        if (el.classList.contains('correct')) return;
+        if (step === correctOrder[pseudoOrder.length]) {
+            el.classList.add('correct');
+            pseudoOrder.push(step);
+            if (pseudoOrder.length === 6) {
+                document.getElementById('order-result').innerText = "Pseudocode Benar!";
+                addXP(20);
+            }
+        } else {
+            el.classList.add('wrong');
+            document.getElementById('order-result').innerText = "Salah! Coba urutan lain.";
+        }
+    }
+
+    function showDebug(id, el) {
+        const box = document.getElementById('debug-box');
+        document.querySelectorAll('.quiz-option').forEach(c => c.style.borderColor = 'var(--border)');
+        el.style.borderColor = 'var(--primary)';
+        let content = '';
+        if (id === 1) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Solusi:</b> Selalu tulis pseudocode/flowchart di kertas sebelum buka editor kode.</p>";
+        if (id === 2) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Solusi:</b> Pastikan setiap cabang percabangan berakhir di simbol End.</p>";
+        if (id === 3) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Solusi:</b> Pseudocode seharusnya bisa dibaca orang non-teknis. Jangan taruh tanda kurung seperti <code>;</code> atau <code>{}</code>.</p>";
+        if (id === 4) content = "<p style='margin:0; text-align:center; color:var(--text-main);'><b>Solusi:</b> Ubah jadi numerik. Contoh: 'Jika nilai >= 75' bukan 'Jika lumayan lulus'.</p>";
+        box.innerHTML = content;
+    }
+
+    function toggleChecklist(el) {
+        if (!el.classList.contains('done')) {
+            el.classList.add('done');
+            addXP(10);
+        }
+    }
+
+    // --- IDE Editor Logic ---
+    function escapeHtml(unsafe) { return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function highlightCode(code) {
+        let result = ''; let i = 0;
+        const keywords = ['if', 'else', 'for', 'while', 'def', 'return', 'print', 'import', 'from', 'class', 'int', 'float', 'char', 'void', 'main', 'printf', 'NULL', 'struct', 'free', 'include'];
+        while (i < code.length) {
+            if (code[i] === '"' || code[i] === "'") {
+                let quote = code[i]; let str = quote; i++;
+                while (i < code.length && code[i] !== quote) { str += code[i]; i++; }
+                if (i < code.length) { str += code[i]; i++; }
+                result += `<span style="color:#98c379">${escapeHtml(str)}</span>`;
+            } else if (code[i] === '#' || (code[i] === '/' && code[i+1] === '/')) {
+                let com = ''; while (i < code.length && code[i] !== '\n') { com += code[i]; i++; }
+                result += `<span style="color:#7ca8b3;font-style:italic">${escapeHtml(com)}</span>`;
+            } else if (/[a-zA-Z_]/.test(code[i])) {
+                let word = ''; while (i < code.length && /[a-zA-Z0-9_]/.test(code[i])) { word += code[i]; i++; }
+                if (keywords.includes(word)) { result += `<span style="color:#c678dd;font-weight:bold">${word}</span>`; } 
+                else { result += escapeHtml(word); }
+            } else if (/[0-9]/.test(code[i])) {
+                let num = ''; while (i < code.length && /[0-9.]/.test(code[i])) { num += code[i]; i++; }
+                result += `<span style="color:#d19a66">${num}</span>`;
+            } else { result += escapeHtml(code[i]); i++; }
+        }
+        return result;
+    }
+
+    function syncEditor(id) {
+        const textarea = document.getElementById('code' + id);
+        const pre = document.getElementById('hl' + id);
+        const ln = document.getElementById('ln' + id);
+        if (!textarea || !pre) return;
+        let code = textarea.value;
+        pre.innerHTML = highlightCode(code) + '\n';
+        let lineCount = code.split('\n').length;
+        let lnStr = ''; for(let i=1; i<=lineCount; i++) { lnStr += i + '\n'; }
+        ln.textContent = lnStr; 
+        pre.scrollTop = textarea.scrollTop; pre.scrollLeft = textarea.scrollLeft; ln.scrollTop = textarea.scrollTop;
+    }
+
+    function runCode(id) {
+        const textarea = document.getElementById('code' + id);
+        const outputEl = document.getElementById('out' + id);
+        const code = textarea.value;
+        
+        outputEl.style.color = '#94a3b8'; outputEl.textContent = 'Menjalankan kode di CLI...';
+        setTimeout(() => {
+            outputEl.textContent = ''; outputEl.style.color = '#10b981';
+            let result = '';
+            
+            if (id === 1) { let m = code.match(/harga\s*=\s*(\d+)/); let j = code.match(/jumlah\s*=\s*(\d+)/); result = (m&&j) ? 'Total: '+(parseInt(m[1])*parseInt(j[1])) : 'Error'; }
+            else if (id === 2) { let m = code.match(/nilai\s*=\s*(\d+)/); result = (m && parseInt(m[1]) >= 75) ? 'LULUS' : 'REMEDIAL'; }
+            else if (id === 3) { result = 'Total 1-5: 15'; }
+            else if (id === 4) { 
+                let m = code.match(/total\s*=\s*harga\s*\*\s*jumlah/); 
+                if (m) { let h = code.match(/harga\s*=\s*(\d+)/); let j = code.match(/jumlah\s*=\s*(\d+)/); result = 'Total: '+(parseInt(h[1])*parseInt(j[1])); }
+                else { result = 'Error: Kode total belum ditulis.'; }
+            }
+            else if (id === 5) { let m = code.match(/nilai_ujian\s*=\s*(\d+)/); result = (m && parseInt(m[1]) >= 75) ? 'Kamu Lulus!' : 'Ikut Remedial.'; }
+            else if (id === 6) { result = 'Halo ke- 1\nHalo ke- 2\nHalo ke- 3'; }
+            else if (id === 7) { let m = code.match(/nilai\s*=\s*(\d+)/); result = (m && parseInt(m[1]) >= 75) ? 'LULUS' : 'REMEDIAL'; }
+            else if (id === 8) { result = 'Total: 30'; }
+            
+            outputEl.textContent = result;
+            addXP(5);
+        }, 500);
+    }
+
+    // --- Terminal Logic ---
+    function handleTerminal(event, inputId, historyId) {
+        if (event.key === 'Enter') {
+            const input = document.getElementById(inputId);
+            const history = document.getElementById(historyId);
+            const cmd = input.value.trim();
+            history.innerHTML += `<div style="display:flex; gap:8px;"><span class="term-prompt">➜ ~</span><span style="color:var(--primary)">${cmd}</span></div>`;
+            input.value = '';
+            let out = '', outClass = 'term-out';
+            
+            if (cmd === 'mkdir sesi2') out = '';
+            else if (cmd === 'cd sesi2') out = '';
+            else if (cmd === 'python3 nilai.py') { out = 'LULUS'; outClass = 'term-out-success'; }
+            else if (cmd === 'clear') { history.innerHTML = ''; return; }
+            else { out = `zsh: command not found: ${cmd.split(' ')[0]}`; outClass = 'term-out-error'; }
+            
+            if (out) { history.innerHTML += `<div class="${outClass}">${out}</div>`; }
+            history.scrollTop = history.scrollHeight;
+            addXP(5);
+        }
+    }
+
+    document.getElementById('term-input1').addEventListener('keydown', (e) => handleTerminal(e, 'term-input1', 'term-history1'));
+
+    updateSlide();
+</script>
+</body>
+</html>
