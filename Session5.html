@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session 5: Percabangan (if, else, nested if, switch-case)</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --primary: #3b82f6;
+            --primary-light: #dbeafe;
+            --secondary: #10b981;
+            --secondary-light: #d1fae5;
+            --accent: #f59e0b;
+            --accent-light: #fef3c7;
+            --danger: #ef4444;
+            --border: #e5e7eb;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --code-bg: #f3f4f6;
+        }
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --text-main: #f1f5f9;
+            --text-light: #94a3b8;
+            --primary: #60a5fa;
+            --primary-light: #1e3a8a;
+            --secondary: #34d399;
+            --secondary-light: #064e3b;
+            --accent: #fbbf24;
+            --accent-light: #78350f;
+            --border: #334155;
+            --terminal-bg: #020617;
+            --terminal-text: #e2e8f0;
+            --code-bg: #1e293b;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg-color); color: var(--text-main); overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; transition: background 0.3s, color 0.3s; }
+        .slides-container { width: 100%; max-width: 1200px; height: 100vh; position: relative; overflow: hidden; padding: 40px; }
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; opacity: 0; transform: translateX(100px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: none; overflow-y: auto; padding: 40px; }
+        .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        .slide.prev { transform: translateX(-100px); opacity: 0; }
+        h1 { font-size: 2.5em; line-height: 1.2; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 2em; margin-bottom: 25px; color: var(--text-main); }
+        h3 { font-size: 1.4em; margin-bottom: 15px; color: var(--primary); }
+        p { font-size: 1.1em; line-height: 1.5; margin-bottom: 15px; color: var(--text-light); }
+        a { color: var(--primary); text-decoration: none; font-weight: bold; }
+        code { font-family: 'Consolas', monospace; background: var(--code-bg); padding: 2px 6px; border-radius: 4px; color: var(--danger); font-size: 0.9em; }
+        
+        .anim { opacity: 0; transform: translateY(20px); transition: all 0.5s ease; }
+        .slide.active .anim { opacity: 1; transform: translateY(0); }
+        .slide.active .anim:nth-child(1) { transition-delay: 0.1s; }
+        .slide.active .anim:nth-child(2) { transition-delay: 0.2s; }
+        .slide.active .anim:nth-child(3) { transition-delay: 0.3s; }
+        .slide.active .anim:nth-child(4) { transition-delay: 0.4s; }
+        
+        .badge { display: inline-block; background: var(--primary-light); color: var(--primary); border-radius: 50px; padding: 8px 20px; font-size: 1.1em; font-weight: bold; margin-bottom: 15px; }
+        .box { background: var(--bg-color); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 10px 0; box-shadow: var(--shadow); }
+        .box.info { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+        .box.warning { background: #fff5f5; border-color: #fed7d7; }
+        body.dark-mode .box.warning { background: #450a0a; border-color: #7f1d1d; }
+        .box.success { background: var(--secondary-light); border-color: var(--secondary); }
+        .box.task { background: var(--accent-light); border-color: var(--accent); border-width: 2px; }
+        body.dark-mode .box.task { background: var(--accent-light); border-color: var(--accent); }
+        .box .label { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; display: block; }
+        
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 15px 0; }
+        .card { background: var(--bg-color); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; transition: transform 0.3s ease; box-shadow: var(--shadow); cursor: pointer; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .card .icon { font-size: 2.5em; margin-bottom: 10px; display: block; }
+        .card h4 { font-size: 1.3em; margin-bottom: 8px; color: var(--text-main); }
+        
+        /* XP System */
+        .xp-container { position: fixed; top: 20px; right: 20px; background: var(--bg-color); padding: 10px 20px; border-radius: 50px; box-shadow: var(--shadow); border: 1px solid var(--border); z-index: 1000; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .xp-bar-bg { width: 100px; height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; }
+        .xp-bar-fill { height: 100%; width: 0%; background: var(--secondary); transition: width 0.5s; }
+        .theme-toggle { position: fixed; top: 20px; left: 20px; background: var(--bg-color); border: 1px solid var(--border); border-radius: 50px; padding: 10px 20px; cursor: pointer; z-index: 1000; box-shadow: var(--shadow); color: var(--text-main); font-size: 1.2em; }
+        
+        /* IDE Editor */
+        .ide-wrapper { width: 100%; max-width: 650px; margin: 0 auto; background: var(--terminal-bg); border-radius: 10px; border: 1px solid #334155; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+        .ide-header { background: #252526; padding: 10px 15px; color: #858585; font-size: 0.9em; font-family: 'Consolas', monospace; display: flex; justify-content: space-between; border-bottom: 1px solid #334155; }
+        .ide-body { display: flex; flex: 1; min-height: 150px; }
+        .line-numbers { width: 40px; background: #1e1e1e; color: #858585; padding: 15px 10px; text-align: right; font-family: 'Consolas', monospace; font-size: 1.1em; line-height: 1.6; user-select: none; border-right: 1px solid #334155; overflow: hidden; white-space: pre; }
+        .code-area { position: relative; flex: 1; overflow: hidden; }
+        .editor-pre, .editor-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; font-family: 'Consolas', monospace; font-size: 1.1em; line-height: 1.6; margin: 0; border: none; white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; }
+        .editor-pre { color: var(--terminal-text); pointer-events: none; z-index: 1; background: transparent; }
+        .editor-textarea { color: transparent; background: transparent; caret-color: var(--secondary); resize: none; outline: none; z-index: 2; }
+        .btn-run { background: var(--primary); color: white; border: none; padding: 12px 25px; font-size: 1.1em; font-weight: bold; border-radius: 8px; cursor: pointer; margin: 10px auto; display: block; transition: all 0.2s; }
+        .btn-run:hover { background: #2563eb; transform: scale(1.05); }
+        .ide-output { background: #0c0c0c; color: var(--secondary); padding: 15px; font-family: 'Consolas', monospace; font-size: 1.1em; min-height: 80px; border-top: 1px solid #334155; white-space: pre-wrap; position: relative; }
+        .ide-output::before { content: "TERMINAL OUTPUT"; position: absolute; top: 0; left: 0; font-size: 0.6em; color: #64748b; padding: 2px 8px; background: #1e1e1e; border-bottom-right-radius: 5px; }
+        .syn-kw { color: #c678dd; font-weight: bold; } .syn-str { color: #98c379; } .syn-num { color: #d19a66; } .syn-type { color: #61afef; }
+        
+        /* Terminal */
+        .terminal { background: var(--terminal-bg); border-radius: 10px; padding: 15px; font-family: 'Consolas', monospace; font-size: 1.2em; color: var(--terminal-text); box-shadow: var(--shadow); margin: 10px 0; border: 1px solid #334155; min-height: 150px; display: flex; flex-direction: column; position: relative; }
+        .term-history { margin-bottom: 8px; flex: 1; overflow-y: auto; padding-top: 15px; }
+        .term-line { display: flex; align-items: center; gap: 8px; }
+        .term-prompt { color: var(--secondary); font-weight: bold; }
+        .term-input { flex: 1; background: transparent; border: none; color: var(--primary); font-family: 'Consolas', monospace; font-size: 1em; outline: none; caret-color: var(--secondary); }
+        .term-out { color: #94a3b8; padding-left: 15px; margin-bottom: 4px; white-space: pre-wrap; }
+        .term-out-success { color: var(--secondary); padding-left: 15px; margin-bottom: 4px; }
+        .term-out-error { color: var(--danger); padding-left: 15px; margin-bottom: 4px; }
+
+        /* Flowchart Shapes */
+        .fc-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 20px 0; }
+        .fc-row { display: flex; gap: 60px; align-items: flex-start; justify-content: center; position: relative; }
+        .fc-shape { display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; color: var(--text-main); background: var(--bg-color); border: 2px solid var(--primary); box-shadow: var(--shadow); min-width: 160px; min-height: 50px; padding: 15px; font-size: 0.95em; }
+        .fc-terminator { border-radius: 25px; border-color: var(--secondary); color: var(--secondary); }
+        .fc-process { border-radius: 0px; }
+        .fc-io { border-radius: 0px; transform: skewX(-15deg); } .fc-io span { transform: skewX(15deg); display: block; }
+        .fc-decision { border-radius: 0px; transform: rotate(45deg); width: 140px; height: 140px; min-height: 140px; } .fc-decision span { transform: rotate(-45deg); display: block; white-space: nowrap; }
+        .fc-arrow { font-size: 1.8em; color: var(--accent); line-height: 0.5; }
+        .fc-branch { display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; }
+        .fc-label { position: absolute; top: -15px; font-size: 0.9em; font-weight: bold; color: var(--text-light); background: var(--bg-color); padding: 0 5px; }
+
+        .op-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .op-table th, .op-table td { border: 1px solid var(--border); padding: 12px; text-align: left; }
+        .op-table th { background: var(--primary-light); color: var(--primary); font-weight: bold; }
+        .op-table tr:nth-child(even) { background: var(--code-bg); }
+        
+        .checklist-item { display: flex; align-items: center; gap: 15px; background: var(--bg-color); border: 1px solid var(--border); padding: 15px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .checklist-item:hover { border-color: var(--primary); }
+        .checklist-item.done { background: var(--secondary-light); border-color: var(--secondary); }
+        .checklist-box { width: 30px; height: 30px; border: 2px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 1.2em; }
+        .checklist-item.done .checklist-box { background: var(--secondary); border-color: var(--secondary); }
+
+        .nav { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; }
+        .nav button { background: var(--bg-color); border: 1px solid var(--border); color: var(--text-main); width: 50px; height: 50px; border-radius: 50%; font-size: 1.2em; cursor: pointer; box-shadow: var(--shadow); transition: all 0.2s; }
+        .nav button:hover { background: var(--primary); color: white; transform: scale(1.1); }
+        .counter { position: fixed; bottom: 20px; left: 20px; color: var(--text-light); font-size: 1.1em; background: var(--bg-color); padding: 10px 20px; border-radius: 50px; box-shadow: var(--shadow); border: 1px solid var(--border); z-index: 1000; }
+        .counter span { color: var(--primary); font-weight: bold; }
+        .progress-bar { position: fixed; top: 0; left: 0; height: 5px; background: linear-gradient(90deg, var(--primary), var(--secondary)); width: 0%; transition: width 0.3s ease; z-index: 1000; }
+        
+        /* Task Box Styling */
+        .task-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .task-num { background: var(--accent); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2em; }
+        .task-steps { list-style: none; margin-left: 0; }
+        .task-steps li { background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; padding: 12px 15px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
+        .task-steps li::before { content: "▸"; color: var(--accent); font-weight: bold; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+<div class="xp-container">
+    <span>XP</span>
+    <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBar"></div></div>
+    <span id="xpVal">0</span>
+</div>
+<div class="counter">Slide <span id="current">1</span> / <span id="total">31</span></div>
+
+<div class="slides-container" id="slidesContainer">
+
+    <!-- 1. COVER -->
+    <div class="slide active" data-slide="1">
+        <div class="anim badge">🔀 Ruang Persimpangan (The Crossroads)</div>
+        <h1 class="anim">Percabangan</h1>
+        <p class="anim">if, else, nested if, switch-case</p>
+        <div class="anim box info" style="text-align: center; margin-top: 20px;">
+            <p style="margin: 0; font-size: 1em; color: var(--text-main);">🧑‍💻 Disusun oleh: <b>Muhammad Ikhwan Fathulloh</b> | <a href="https://one.nocturnailed.com/" target="_blank">one.nocturnailed.com</a></p>
+        </div>
+    </div>
+
+    <!-- 2. RECAP & BRIDGE -->
+    <div class="slide" data-slide="2">
+        <h2 class="anim">Recall: Session 1-4</h2>
+        <p class="anim">Session 3: Variabel & Operator. Session 4: Input/Output. Kita sudah bisa minta data dan menampilkannya.</p>
+        <p class="anim">Sekarang: <b>Bagaimana program mengambil KEPUTUSAN berdasarkan data itu?</b></p>
+        <div class="anim box info">
+            <span class="label">💡 Pertanyaan Pemantik</span>
+            <p style="margin:0;">Saat kamu masuk ke gerbang tol, kenapa palang bisa otomatis terbuka HANYA jika kartu balance-nya cukup? Jawabannya: ada <b>percabangan</b>.</p>
+        </div>
+    </div>
+
+    <!-- 3. PEMANTIK: PERSIMPANGAN JALAN -->
+    <div class="slide" data-slide="3">
+        <h2 class="anim">Pemantik: Persimpangan Jalan</h2>
+        <p class="anim">Di kehidupan sehari-hari, kita sering mengambil keputusan berdasarkan kondisi.</p>
+        <div class="anim fc-container">
+            <div class="fc-shape fc-terminator">START</div>
+            <div class="fc-arrow">↓</div>
+            <div class="fc-shape fc-decision"><span>Hujan?</span></div>
+            <div class="fc-row">
+                <div class="fc-branch">
+                    <span class="fc-label">YA</span>
+                    <div class="fc-arrow">↓</div>
+                    <div class="fc-shape fc-process" style="border-color: var(--secondary); color: var(--secondary);">Bawa Payung</div>
+                </div>
+                <div class="fc-branch">
+                    <span class="fc-label" style="color: var(--danger);">TIDAK</span>
+                    <div class="fc-arrow">↓</div>
+                    <div class="fc-shape fc-process" style="border-color: var(--danger); color: var(--danger);">Pakai Topi</div>
+                </div>
+            </div>
+            <div class="fc-arrow">↓</div>
+            <div class="fc-shape fc-terminator" style="border-color: var(--text-light); color: var(--text-light);">END</div>
+        </div>
+        <p class="anim" style="text-align:center;">Inilah inti dari <b>percabangan</b> (Selection): program memilih jalan mana yang dieksekusi.</p>
+    </div>
+
+    <!-- 4. APA ITU PERCABANGAN -->
+    <div class="slide" data-slide="4">
+        <h2 class="anim">Apa itu Percabangan?</h2>
+        <p class="anim">Struktur kontrol yang memungkinkan program mengeksekusi blok kode berbeda berdasarkan <b>kondisi</b> (True/False).</p>
+        <div class="anim cards">
+            <div class="card" style="border-color: var(--primary);"><span class="icon">🛤️</span><h4>Satu Kondisi</h4><p><code>if</code> saja</p></div>
+            <div class="card" style="border-color: var(--secondary);"><span class="icon">↔️</span><h4>Dua Kondisi</h4><p><code>if-else</code></p></div>
+            <div class="card" style="border-color: var(--accent);"><span class="icon">🌿</span><h4>Banyak Kondisi</h4><p><code>elif</code> / <code>switch</code></p></div>
+            <div class="card" style="border-color: var(--danger);"><span class="icon">🪆</span><h4>Bercabang Dalam</h4><p><code>nested if</code></p></div>
+        </div>
+    </div>
+
+    <!-- 5. IF SEDERHANA -->
+    <div class="slide" data-slide="5">
+        <h2 class="anim">1. If Sederhana</h2>
+        <p class="anim">Hanya mengeksekusi kode <b>JIKA</b> kondisi terpenuhi (True). Jika False, lewati.</p>
+        <div class="anim fc-container" style="margin: 10px 0;">
+            <div class="fc-shape fc-terminator" style="min-width: 80px;">START</div>
+            <div class="fc-arrow">↓</div>
+            <div class="fc-shape fc-decision"><span>Kondisi?</span></div>
+            <div class="fc-row">
+                <div class="fc-branch">
+                    <span class="fc-label">TRUE</span>
+                    <div class="fc-arrow">↓</div>
+                    <div class="fc-shape fc-process">Eksekusi Kode</div>
+                    <div class="fc-arrow">↓</div>
+                </div>
+                <div class="fc-branch" style="margin-left: 40px;">
+                    <span class="fc-label" style="color: var(--danger);">FALSE</span>
+                    <div class="fc-arrow">↓</div>
+                    <div style="color: var(--text-light);">Lewati</div>
+                    <div class="fc-arrow">↓</div>
+                </div>
+            </div>
+            <div class="fc-shape fc-terminator" style="min-width: 80px;">END</div>
+        </div>
+    </div>
+
+    <!-- 6. PRAKTIK IF PYTHON -->
+    <div class="slide" data-slide="6">
+        <h2 class="anim">Praktik If Sederhana (Python)</h2>
+        <p class="anim">Coba ubah <code>umur</code> menjadi 15, lalu klik Run.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>if.py</span><span>Python</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln1"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl1"></pre>
+                    <textarea class="editor-textarea" id="code1" spellcheck="false" oninput="syncEditor(1)">umur = 20
+
+if umur >= 17:
+    print("Kamu sudah dewasa.")
+    print("Boleh buat KTP.")</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(1)">▶ Run Kode</button>
+            <div class="ide-output" id="out1">// Terminal Output...</div>
+        </div>
+        <p class="anim" style="text-align:center; font-size: 0.95em;">⚠️ <b>Indentasi (spasi masuk)</b> sangat penting di Python! Menentukan apa yang ada di dalam <code>if</code>.</p>
+    </div>
+
+    <!-- 7. PRAKTIK IF C++ -->
+    <div class="slide" data-slide="7">
+        <h2 class="anim">Praktik If Sederhana (C++)</h2>
+        <p class="anim">C++ pakai kurung kurawal <code>{ }</code> sebagai blok, bukan indentasi.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>if.cpp</span><span>C++</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln2"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl2"></pre>
+                    <textarea class="editor-textarea" id="code2" spellcheck="false" oninput="syncEditor(2)">#include <iostream>
+using namespace std;
+
+int main() {
+    int umur = 20;
+    if (umur >= 17) {
+        cout << "Kamu sudah dewasa." << endl;
+        cout << "Boleh buat KTP." << endl;
+    }
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(2)">▶ Run Kode</button>
+            <div class="ide-output" id="out2">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 8. IF-ELSE -->
+    <div class="slide" data-slide="8">
+        <h2 class="anim">2. If-Else (Dua Pilihan)</h2>
+        <p class="anim">Jika kondisi True, jalankan blok <code>if</code>. Jika False, jalankan blok <code>else</code>.</p>
+        <div class="anim fc-container" style="margin: 10px 0;">
+            <div class="fc-shape fc-decision"><span>umur >= 17?</span></div>
+            <div class="fc-row">
+                <div class="fc-branch">
+                    <span class="fc-label">TRUE</span>
+                    <div class="fc-arrow">↓</div>
+                    <div class="fc-shape fc-process" style="border-color: var(--secondary); color: var(--secondary);">"Dewasa"</div>
+                </div>
+                <div class="fc-branch">
+                    <span class="fc-label" style="color: var(--danger);">FALSE</span>
+                    <div class="fc-arrow">↓</div>
+                    <div class="fc-shape fc-process" style="border-color: var(--danger); color: var(--danger);">"Belum Dewasa"</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. PRAKTIK IF-ELSE PYTHON -->
+    <div class="slide" data-slide="9">
+        <h2 class="anim">Praktik If-Else (Python)</h2>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>ifelse.py</span><span>Python</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln3"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl3"></pre>
+                    <textarea class="editor-textarea" id="code3" spellcheck="false" oninput="syncEditor(3)">umur = 15
+
+if umur >= 17:
+    print("Kamu sudah dewasa.")
+else:
+    print("Kamu masih anak-anak.")</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(3)">▶ Run Kode</button>
+            <div class="ide-output" id="out3">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 10. PRAKTIK IF-ELSE C++ -->
+    <div class="slide" data-slide="10">
+        <h2 class="anim">Praktik If-Else (C++)</h2>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>ifelse.cpp</span><span>C++</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln4"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl4"></pre>
+                    <textarea class="editor-textarea" id="code4" spellcheck="false" oninput="syncEditor(4)">#include <iostream>
+using namespace std;
+
+int main() {
+    int umur = 15;
+    if (umur >= 17) {
+        cout << "Kamu sudah dewasa." << endl;
+    } else {
+        cout << "Kamu masih anak-anak." << endl;
+    }
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(4)">▶ Run Kode</button>
+            <div class="ide-output" id="out4">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 11. ELIF / ELSE IF -->
+    <div class="slide" data-slide="11">
+        <h2 class="anim">3. Elif / Else If (Banyak Kondisi)</h2>
+        <p class="anim">Untuk mengecek banyak kondisi secara berurutan. Hanya kondisi pertama yang True yang dieksekusi.</p>
+        <div class="anim box">
+            <table class="op-table">
+                <tr><th>Python</th><th>C++</th></tr>
+                <tr>
+                    <td><code>if kondisi1:</code><br><code>elif kondisi2:</code><br><code>else:</code></td>
+                    <td><code>if (kondisi1) { }</code><br><code>else if (kondisi2) { }</code><br><code>else { }</code></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 12. PRAKTIK ELIF PYTHON -->
+    <div class="slide" data-slide="12">
+        <h2 class="anim">Praktik Elif (Python) — Cek Nilai</h2>
+        <p class="anim">Lanjutan dari Session 2/3. Sekarang kita buat 4 kategori nilai.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>nilai.py</span><span>Python</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln5"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl5"></pre>
+                    <textarea class="editor-textarea" id="code5" spellcheck="false" oninput="syncEditor(5)">nilai = 85
+
+if nilai >= 90:
+    print("Grade A")
+elif nilai >= 75:
+    print("Grade B")
+elif nilai >= 60:
+    print("Grade C")
+else:
+    print("Grade D (Remedial)")</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(5)">▶ Run Kode</button>
+            <div class="ide-output" id="out5">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 13. PRAKTIK ELSE IF C++ -->
+    <div class="slide" data-slide="13">
+        <h2 class="anim">Praktik Else If (C++)</h2>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>nilai.cpp</span><span>C++</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln6"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl6"></pre>
+                    <textarea class="editor-textarea" id="code6" spellcheck="false" oninput="syncEditor(6)">#include <iostream>
+using namespace std;
+
+int main() {
+    int nilai = 85;
+    if (nilai >= 90) {
+        cout << "Grade A";
+    } else if (nilai >= 75) {
+        cout << "Grade B";
+    } else if (nilai >= 60) {
+        cout << "Grade C";
+    } else {
+        cout << "Grade D (Remedial)";
+    }
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(6)">▶ Run Kode</button>
+            <div class="ide-output" id="out6">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 14. NESTED IF -->
+    <div class="slide" data-slide="14">
+        <h2 class="anim">4. Nested If (If Bersarang)</h2>
+        <p class="anim">If di dalam if. Digunakan ketika kita perlu cek kondisi lain setelah kondisi pertama terpenuhi.</p>
+        <div class="anim box info">
+            <span class="label">Contoh Logika</span>
+            <p style="margin:0;">1. Cek apakah user punya kartu member?<br>&nbsp;&nbsp;→ Jika YA, cek lagi: saldo cukup?<br>&nbsp;&nbsp;→ Jika TIDAK, bayar tunai.</p>
+        </div>
+    </div>
+
+    <!-- 15. PRAKTIK NESTED IF PYTHON -->
+    <div class="slide" data-slide="15">
+        <h2 class="anim">Praktik Nested If (Python)</h2>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>nested.py</span><span>Python</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln7"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl7"></pre>
+                    <textarea class="editor-textarea" id="code7" spellcheck="false" oninput="syncEditor(7)">punya_member = True
+saldo = 50000
+harga = 75000
+
+if punya_member:
+    if saldo >= harga:
+        print("Transaksi berhasil! Dapat poin.")
+    else:
+        print("Saldo tidak cukup.")
+else:
+    print("Bukan member, bayar tunai.")</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(7)">▶ Run Kode</button>
+            <div class="ide-output" id="out7">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 16. PRAKTIK NESTED IF C++ -->
+    <div class="slide" data-slide="16">
+        <h2 class="anim">Praktik Nested If (C++)</h2>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>nested.cpp</span><span>C++</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln8"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl8"></pre>
+                    <textarea class="editor-textarea" id="code8" spellcheck="false" oninput="syncEditor(8)">#include <iostream>
+using namespace std;
+
+int main() {
+    bool punya_member = true;
+    int saldo = 50000, harga = 75000;
+
+    if (punya_member) {
+        if (saldo >= harga) {
+            cout << "Transaksi berhasil! Dapat poin.";
+        } else {
+            cout << "Saldo tidak cukup.";
+        }
+    } else {
+        cout << "Bukan member, bayar tunai.";
+    }
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(8)">▶ Run Kode</button>
+            <div class="ide-output" id="out8">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 17. SWITCH-CASE -->
+    <div class="slide" data-slide="17">
+        <h2 class="anim">5. Switch-Case (C++)</h2>
+        <p class="anim">Alternatif untuk if-else jika kondisinya mengecek <b>satu variabel dengan nilai pasti</b> (angka/char).</p>
+        <div class="anim box info">
+            <span class="label">Sintaks C++</span>
+            <p style="margin:0; font-family: monospace; font-size: 1em;">
+            <code>switch (variabel) {</code><br>
+            &nbsp;&nbsp;<code>case nilai1: // kode; break;</code><br>
+            &nbsp;&nbsp;<code>case nilai2: // kode; break;</code><br>
+            &nbsp;&nbsp;<code>default: // kode lain;</code><br>
+            <code>}</code>
+            </p>
+        </div>
+        <p class="anim" style="text-align:center;">⚠️ Jangan lupa <code>break;</code> agar tidak eksekusi case berikutnya!</p>
+    </div>
+
+    <!-- 18. PRAKTIK SWITCH-CASE C++ -->
+    <div class="slide" data-slide="18">
+        <h2 class="anim">Praktik Switch-Case (C++)</h2>
+        <p class="anim">Cek hari berdasarkan angka. Coba ubah <code>hari</code> jadi 5.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>switch.cpp</span><span>C++</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln9"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl9"></pre>
+                    <textarea class="editor-textarea" id="code9" spellcheck="false" oninput="syncEditor(9)">#include <iostream>
+using namespace std;
+
+int main() {
+    int hari = 3;
+    switch (hari) {
+        case 1: cout << "Senin"; break;
+        case 2: cout << "Selasa"; break;
+        case 3: cout << "Rabu"; break;
+        case 4: cout << "Kamis"; break;
+        case 5: cout << "Jumat"; break;
+        default: cout << "Weekend!";
+    }
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(9)">▶ Run Kode</button>
+            <div class="ide-output" id="out9">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 19. MATCH-CASE PYTHON -->
+    <div class="slide" data-slide="19">
+        <h2 class="anim">Match-Case (Python 3.10+)</h2>
+        <p class="anim">Python tidak punya <code>switch</code> tradisional, tapi punya <code>match-case</code> (mirip switch).</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>match.py</span><span>Python 3.10+</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln10"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl10"></pre>
+                    <textarea class="editor-textarea" id="code10" spellcheck="false" oninput="syncEditor(10)">hari = 3
+match hari:
+    case 1: print("Senin")
+    case 2: print("Selasa")
+    case 3: print("Rabu")
+    case 4: print("Kamis")
+    case 5: print("Jumat")
+    case _: print("Weekend!")</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(10)">▶ Run Kode</button>
+            <div class="ide-output" id="out10">// Terminal Output...</div>
+        </div>
+        <p class="anim" style="text-align:center; font-size: 0.9em;"><code>case _:</code> adalah default (seperti <code>default:</code> di C++).</p>
+    </div>
+
+    <!-- 20. SWITCH VS IF-ELSE -->
+    <div class="slide" data-slide="20">
+        <h2 class="anim">Switch vs If-Else: Kapan Pakai?</h2>
+        <div class="anim" style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="box" style="border-color: var(--secondary);">
+                <h3 style="color: var(--secondary);">✅ Pakai Switch-Case</h3>
+                <p style="margin:0;">Cek <b>satu variabel</b> dengan <b>nilai pasti</b> (1, 2, 3, 'A', 'B').<br>Contoh: Menu hari, pilihan menu restoran.</p>
+            </div>
+            <div class="box" style="border-color: var(--danger);">
+                <h3 style="color: var(--danger);">✅ Pakai If-Else</h3>
+                <p style="margin:0;">Cek <b>rentang nilai</b> atau kondisi kompleks (>=, <=, AND, OR).<br>Contoh: Nilai >= 75, umur > 17 AND punya SIM.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 21. STUDI KASUS: KALKULATOR SEDERHANA -->
+    <div class="slide" data-slide="21">
+        <h2 class="anim">Studi Kasus: Kalkulator Sederhana</h2>
+        <p class="anim">Minta 2 angka dan operator (+, -, *, /). Gunakan percabangan untuk memilih operasi.</p>
+        <div class="anim box info">
+            <span class="label">Algoritma</span>
+            <p style="margin:0;">1. Input angka1, operator, angka2<br>2. If operator == '+': hasil = angka1 + angka2<br>3. Else if operator == '-': hasil = angka1 - angka2<br>4. ... dst<br>5. Output hasil</p>
+        </div>
+    </div>
+
+    <!-- 22. PRAKTIK PYTHON: KALKULATOR -->
+    <div class="slide" data-slide="22">
+        <h2 class="anim">Praktik Python: Kalkulator</h2>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>kalkulator.py</span><span>Python</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln11"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl11"></pre>
+                    <textarea class="editor-textarea" id="code11" spellcheck="false" oninput="syncEditor(11)">angka1 = 10
+operator = "+"
+angka2 = 5
+
+if operator == "+":
+    hasil = angka1 + angka2
+elif operator == "-":
+    hasil = angka1 - angka2
+elif operator == "*":
+    hasil = angka1 * angka2
+elif operator == "/":
+    hasil = angka1 / angka2
+else:
+    hasil = "Operator salah!"
+
+print(f"{angka1} {operator} {angka2} = {hasil}")</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(11)">▶ Run Kode</button>
+            <div class="ide-output" id="out11">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 23. PRAKTIK C++: KALKULATOR -->
+    <div class="slide" data-slide="23">
+        <h2 class="anim">Praktik C++: Kalkulator (Switch)</h2>
+        <p class="anim">Di C++, operator berupa char cocok pakai <code>switch</code>.</p>
+        <div class="anim box ide-wrapper">
+            <div class="ide-header"><span>kalkulator.cpp</span><span>C++</span></div>
+            <div class="ide-body">
+                <div class="line-numbers" id="ln12"></div>
+                <div class="code-area">
+                    <pre class="editor-pre" id="hl12"></pre>
+                    <textarea class="editor-textarea" id="code12" spellcheck="false" oninput="syncEditor(12)">#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 10, b = 5;
+    char op = '+';
+    int hasil;
+
+    switch (op) {
+        case '+': hasil = a + b; break;
+        case '-': hasil = a - b; break;
+        case '*': hasil = a * b; break;
+        default: hasil = 0;
+    }
+    cout << a << " " << op << " " << b << " = " << hasil;
+    return 0;
+}</textarea>
+                </div>
+            </div>
+            <button class="btn-run" onclick="runCode(12)">▶ Run Kode</button>
+            <div class="ide-output" id="out12">// Terminal Output...</div>
+        </div>
+    </div>
+
+    <!-- 24. KESALAHAN UMUM -->
+    <div class="slide" data-slide="24">
+        <h2 class="anim">⚠️ Kesalahan Umum Pemula</h2>
+        <div class="anim" style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="box warning">
+                <span class="label" style="color: var(--danger);">❌ Lupa Indentasi (Python)</span>
+                <p style="margin:0;"><code>if x &gt; 5:<br>print("besar")</code></p>
+                <p style="margin-top:10px;">Error! Harus ada spasi masuk (Tab/4 spasi).</p>
+            </div>
+            <div class="box warning">
+                <span class="label" style="color: var(--danger);">❌ Lupa Break (Switch C++)</span>
+                <p style="margin:0;"><code>case 1: cout&lt;&lt;"A";<br>case 2: cout&lt;&lt;"B";</code></p>
+                <p style="margin-top:10px;">Tanpa <code>break;</code>, case 2 ikut dieksekusi!</p>
+            </div>
+            <div class="box warning">
+                <span class="label" style="color: var(--danger);">❌ = vs ==</span>
+                <p style="margin:0;"><code>if (x = 5)</code> (assignment)</p>
+                <p style="margin-top:10px;">Seharusnya <code>==</code> untuk perbandingan!</p>
+            </div>
+            <div class="box warning">
+                <span class="label" style="color: var(--danger);">❌ Nested If Terlalu Dalam</span>
+                <p style="margin:0;">If dalam if dalam if dalam if...</p>
+                <p style="margin-top:10px;">Sulit dibaca. Pertimbangkan <code>elif</code> atau pecah jadi fungsi.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 25. PRAKTIK CLI -->
+    <div class="slide" data-slide="25">
+        <h2 class="anim">Praktik CLI: Compile & Run</h2>
+        <p class="anim">Coba: <code>g++ switch.cpp -o switch && ./switch</code></p>
+        <div class="anim terminal" onclick="document.getElementById('term-input1').focus()">
+            <div class="term-history" id="term-history1"><div class="term-out">File: kalkulator.py, switch.cpp</div></div>
+            <div class="term-line"><span class="term-prompt">➜ ~</span><input type="text" class="term-input" id="term-input1" autocomplete="off"></div>
+        </div>
+    </div>
+
+    <!-- 26. TUGAS 1: KONVERSI NILAI HURUF -->
+    <div class="slide" data-slide="26">
+        <h2 class="anim">📋 Tugas 1: Konversi Nilai ke Huruf</h2>
+        <div class="anim box task">
+            <div class="task-header">
+                <div class="task-num">1</div>
+                <h3 style="margin:0; color: var(--accent);">Buat program cek grade nilai mahasiswa</h3>
+            </div>
+            <p>Buat program Python <code>grade.py</code> dengan ketentuan:</p>
+            <ul class="task-steps">
+                <li>Minta input <code>nilai</code> (int) dari user</li>
+                <li>Gunakan <code>if-elif-else</code> untuk menentukan grade:</li>
+                <li>Nilai 85-100 → Grade A</li>
+                <li>Nilai 70-84 → Grade B</li>
+                <li>Nilai 55-69 → Grade C</li>
+                <li>Nilai &lt; 55 → Grade D (Remedial)</li>
+                <li>Cetak: "Nilai X = Grade Y"</li>
+            </ul>
+            <p style="font-size:0.9em; color:var(--text-light); margin-top:10px;">Bonus: Buat versi C++ (<code>grade.cpp</code>).</p>
+        </div>
+    </div>
+
+    <!-- 27. TUGAS 2: MENU RESTORAN -->
+    <div class="slide" data-slide="27">
+        <h2 class="anim">📋 Tugas 2: Menu Restoran</h2>
+        <div class="anim box task">
+            <div class="task-header">
+                <div class="task-num">2</div>
+                <h3 style="margin:0; color: var(--accent);">Buat program menu restoran dengan switch-case</h3>
+            </div>
+            <p>Buat program C++ <code>restoran.cpp</code> dengan ketentuan:</p>
+            <ul class="task-steps">
+                <li>Tampilkan menu: 1. Nasi Goreng (15k), 2. Mie Ayam (12k), 3. Es Teh (3k)</li>
+                <li>Minta input <code>pilihan</code> (int)</li>
+                <li>Minta input <code>jumlah</code> (int)</li>
+                <li>Gunakan <code>switch-case</code> untuk menentukan harga</li>
+                <li>Hitung total = harga * jumlah</li>
+                <li>Cetak: "Total bayar: Rp X"</li>
+                <li>Default case: "Menu tidak ada"</li>
+            </ul>
+            <p style="font-size:0.9em; color:var(--text-light); margin-top:10px;">Bonus: Buat versi Python pakai <code>match-case</code> (<code>restoran.py</code>).</p>
+        </div>
+    </div>
+
+    <!-- 28. PETA JALAN -->
+    <div class="slide" data-slide="28">
+        <h2 class="anim">Peta Jalan: Apa Selanjutnya?</h2>
+        <div class="anim" style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="box success">
+                <span class="label" style="color: var(--secondary);">✅ Dipelajari Sekarang</span>
+                <p style="margin:0;">Percabangan: <code>if</code>, <code>if-else</code>, <code>elif</code>, <code>nested if</code>, <code>switch-case</code> (C++), <code>match-case</code> (Python).</p>
+            </div>
+            <div class="box info">
+                <span class="label" style="color: var(--primary);">🚀 Selanjutnya (Session 6)</span>
+                <p style="margin:0;">Perulangan (Looping): <code>for</code>, <code>while</code>, <code>do-while</code>. Cara membuat program mengulang tugas tanpa menulis kode berulang kali.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 29. FINAL MISSION -->
+    <div class="slide" data-slide="29">
+        <h2 class="anim">✅ Final Mission: Tugas Akhir</h2>
+        <p class="anim">Klik checklist setelah selesai. Wajib pakai CLI & Git!</p>
+        <div class="anim">
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>1. Kerjakan Tugas 1 (Konversi Nilai) di Python & C++</div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>2. Kerjakan Tugas 2 (Menu Restoran) di C++ & Python</div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>3. Compile C++ lewat CLI: <code>g++ file.cpp -o file</code></div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>4. Jalankan Python lewat CLI: <code>python3 file.py</code></div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>5. Git commit & push ke GitHub folder "session-5"</div>
+            <div class="checklist-item" onclick="toggleChecklist(this)"><div class="checklist-box">✓</div>6. Buat README.md berisi screenshot output kedua program</div>
+        </div>
+    </div>
+
+    <!-- 30. PENUTUP & REFERENSI -->
+    <div class="slide" data-slide="30" style="text-align: center;">
+        <div class="anim badge">🎉 Penutup Session 5</div>
+        <h1 class="anim">Program yang Bisa Memilih Jalan</h1>
+        <div class="anim box" style="max-width: 600px; margin: 20px auto; text-align: left;">
+            <span class="label">📚 Referensi</span>
+            <p style="font-size: 1em;">
+            1. Sebesta, R. W. <i>Concepts of Programming Languages</i>. Pearson.<br>
+            2. Stroustrup, B. <i>The C++ Programming Language</i>.<br>
+            3. Python Software Foundation. <i>Python 3 Documentation (match-case)</i>.<br>
+            4. Shotts, W. <i>The Linux Command Line</i>.
+            </p>
+        </div>
+        <p class="anim" style="font-size: 1.2em; margin-top: 20px;"><b>Muhammad Ikhwan Fathulloh</b> | <a href="https://one.nocturnailed.com/" target="_blank">one.nocturnailed.com</a></p>
+    </div>
+
+</div>
+
+<div class="nav">
+    <button onclick="prevSlide()" id="prevBtn">←</button>
+    <button onclick="nextSlide()" id="nextBtn">→</button>
+</div>
+
+<script>
+    let currentSlide = 1;
+    const totalSlides = 30;
+    const slides = document.querySelectorAll('.slide');
+    const progressBar = document.getElementById('progressBar');
+    const currentSpan = document.getElementById('current');
+    
+    // XP System
+    let xp = 0;
+    function addXP(val) {
+        xp += val;
+        document.getElementById('xpVal').innerText = xp;
+        document.getElementById('xpBar').style.width = Math.min(100, xp) + '%';
+    }
+
+    function updateSlide() {
+        slides.forEach((slide, index) => {
+            slide.classList.remove('active', 'prev');
+            if (index + 1 === currentSlide) {
+                slide.classList.add('active');
+                if (slide.querySelector('.editor-textarea')) {
+                    let id = slide.querySelector('.editor-textarea').id.replace('code', '');
+                    syncEditor(id);
+                }
+            } else if (index + 1 < currentSlide) {
+                slide.classList.add('prev');
+            }
+        });
+        currentSpan.textContent = currentSlide;
+        progressBar.style.width = (currentSlide / totalSlides * 100) + '%';
+    }
+
+    function nextSlide() { if (currentSlide < totalSlides) { currentSlide++; updateSlide(); } }
+    function prevSlide() { if (currentSlide > 1) { currentSlide--; updateSlide(); } }
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextSlide(); } 
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevSlide(); }
+    });
+
+    function toggleChecklist(el) {
+        if (!el.classList.contains('done')) {
+            el.classList.add('done');
+            addXP(10);
+        }
+    }
+
+    // --- IDE Editor Logic ---
+    function escapeHtml(unsafe) { return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function highlightCode(code) {
+        let result = ''; let i = 0;
+        const keywords = ['if', 'else', 'elif', 'for', 'while', 'def', 'return', 'print', 'import', 'from', 'class', 'main', 'include', 'using', 'namespace', 'cout', 'cin', 'endl', 'switch', 'case', 'break', 'default', 'match', 'true', 'false', 'True', 'False', 'None', 'input', 'int', 'float', 'str', 'char', 'bool'];
+        const types = ['int', 'float', 'double', 'char', 'string', 'bool', 'void', 'str'];
+        while (i < code.length) {
+            if (code[i] === '"' || code[i] === "'") {
+                let quote = code[i]; let str = quote; i++;
+                while (i < code.length && code[i] !== quote) { str += code[i]; i++; }
+                if (i < code.length) { str += code[i]; i++; }
+                result += `<span style="color:#98c379">${escapeHtml(str)}</span>`;
+            } else if (code[i] === '#' || (code[i] === '/' && code[i+1] === '/')) {
+                let com = ''; while (i < code.length && code[i] !== '\n') { com += code[i]; i++; }
+                result += `<span style="color:#7ca8b3;font-style:italic">${escapeHtml(com)}</span>`;
+            } else if (/[a-zA-Z_]/.test(code[i])) {
+                let word = ''; while (i < code.length && /[a-zA-Z0-9_]/.test(code[i])) { word += code[i]; i++; }
+                if (keywords.includes(word)) { result += `<span style="color:#c678dd;font-weight:bold">${word}</span>`; } 
+                else if (types.includes(word)) { result += `<span style="color:#61afef;font-weight:bold">${word}</span>`; }
+                else { result += escapeHtml(word); }
+            } else if (/[0-9]/.test(code[i])) {
+                let num = ''; while (i < code.length && /[0-9.]/.test(code[i])) { num += code[i]; i++; }
+                result += `<span style="color:#d19a66">${num}</span>`;
+            } else { result += escapeHtml(code[i]); i++; }
+        }
+        return result;
+    }
+
+    function syncEditor(id) {
+        const textarea = document.getElementById('code' + id);
+        const pre = document.getElementById('hl' + id);
+        const ln = document.getElementById('ln' + id);
+        if (!textarea || !pre) return;
+        let code = textarea.value;
+        pre.innerHTML = highlightCode(code) + '\n';
+        let lineCount = code.split('\n').length;
+        let lnStr = ''; for(let i=1; i<=lineCount; i++) { lnStr += i + '\n'; }
+        ln.textContent = lnStr; 
+        pre.scrollTop = textarea.scrollTop; pre.scrollLeft = textarea.scrollLeft; ln.scrollTop = textarea.scrollTop;
+    }
+
+    function runCode(id) {
+        const textarea = document.getElementById('code' + id);
+        const outputEl = document.getElementById('out' + id);
+        const code = textarea.value;
+        
+        outputEl.style.color = '#94a3b8'; outputEl.textContent = 'Menjalankan kode di CLI...';
+        setTimeout(() => {
+            outputEl.textContent = ''; outputEl.style.color = '#10b981';
+            let result = '';
+            
+            if (id === 1) { result = 'Kamu sudah dewasa.\nBoleh buat KTP.'; }
+            else if (id === 2) { result = 'Kamu sudah dewasa.\nBoleh buat KTP.'; }
+            else if (id === 3) { result = 'Kamu masih anak-anak.'; }
+            else if (id === 4) { result = 'Kamu masih anak-anak.'; }
+            else if (id === 5) { result = 'Grade B'; }
+            else if (id === 6) { result = 'Grade B'; }
+            else if (id === 7) { result = 'Saldo tidak cukup.'; }
+            else if (id === 8) { result = 'Saldo tidak cukup.'; }
+            else if (id === 9) { result = 'Rabu'; }
+            else if (id === 10) { result = 'Rabu'; }
+            else if (id === 11) { result = '10 + 5 = 15'; }
+            else if (id === 12) { result = '10 + 5 = 15'; }
+            
+            outputEl.textContent = result;
+            addXP(5);
+        }, 500);
+    }
+
+    // --- Terminal Logic ---
+    function handleTerminal(event, inputId, historyId) {
+        if (event.key === 'Enter') {
+            const input = document.getElementById(inputId);
+            const history = document.getElementById(historyId);
+            const cmd = input.value.trim();
+            history.innerHTML += `<div style="display:flex; gap:8px;"><span class="term-prompt">➜ ~</span><span style="color:var(--primary)">${cmd}</span></div>`;
+            input.value = '';
+            let out = '', outClass = 'term-out';
+            
+            if (cmd === 'g++ switch.cpp -o switch && ./switch') { out = 'Rabu'; outClass = 'term-out-success'; }
+            else if (cmd === 'python3 kalkulator.py') { out = '10 + 5 = 15'; outClass = 'term-out-success'; }
+            else if (cmd === 'clear') { history.innerHTML = ''; return; }
+            else { out = `zsh: command not found: ${cmd.split(' ')[0]}`; outClass = 'term-out-error'; }
+            
+            if (out) { history.innerHTML += `<div class="${outClass}">${out}</div>`; }
+            history.scrollTop = history.scrollHeight;
+            addXP(5);
+        }
+    }
+
+    document.getElementById('term-input1').addEventListener('keydown', (e) => handleTerminal(e, 'term-input1', 'term-history1'));
+
+    updateSlide();
+</script>
+</body>
+</html>
